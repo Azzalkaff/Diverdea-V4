@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lateral Idea Synthesizer</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="h-screen w-screen overflow-hidden bg-cream text-matcha-dark dark:bg-matcha-dark dark:text-cream-dim transition-colors duration-500 font-sans select-none">
+
+    <div id="app" class="relative h-full w-full flex overflow-hidden" @click="initAudioContext">
+        <div class="orb bg-matcha/20 top-[-10%] left-[-10%]"></div>
+        <div class="orb bg-matcha/10 bottom-[-10%] right-[-10%]"></div>
+        
+        <!-- Theme Toggle -->
+        <div class="fixed top-6 right-10 z-[100] flex items-center gap-3 bg-cream/80 backdrop-blur-md p-1.5 pl-4 rounded-full border border-oatmeal shadow-sm">
+            <span class="text-[9px] font-black uppercase tracking-[0.2em] opacity-50">{{ isDarkMode ? 'Dark' : 'Light' }}</span>
+            <button @click="showSettingsModal = true" class="flex items-center justify-center w-8 h-8 rounded-full bg-matcha/20 text-matcha hover:bg-matcha/40 transition-all">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button @click="toggleAudio" class="flex items-center justify-center w-8 h-8 rounded-full bg-matcha/20 text-matcha hover:bg-matcha/40 transition-all">
+                <i class="fa-solid" :class="audioInitialized ? 'fa-volume-high' : 'fa-volume-xmark'"></i>
+            </button>
+            <button @click="toggleTheme" class="flex items-center justify-center w-8 h-8 rounded-full bg-matcha text-matcha-dark shadow-sm hover:scale-105 transition-transform">
+                <i class="fa-solid" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Left: Controls -->
+        <aside class="w-[280px] h-full bg-cream-dark dark:bg-matcha-surface border-r border-oatmeal dark:border-white/5 flex flex-col z-20 transition-colors">
+            <div class="p-8 border-b border-oatmeal space-y-4">
+                <a href="index.html" class="text-lg font-bold tracking-tighter flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <span class="w-2 h-2 bg-matcha rounded-full animate-pulse"></span> diverdea.
+                </a>
+                <div class="relative">
+                    <input type="text" v-model="appName" placeholder="App Name..." 
+                           class="w-full bg-white/40 dark:bg-white/5 border border-oatmeal dark:border-white/10 px-4 py-2.5 rounded-xl text-xs font-black tracking-widest outline-none focus:ring-1 focus:ring-matcha transition-all uppercase">
+                    <i class="fa-solid fa-pen absolute right-4 top-1/2 -translate-y-1/2 text-[8px] opacity-30"></i>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                
+                <!-- Accordion 1: Core Engine -->
+                <div class="bg-cream/40 dark:bg-white/[0.02] border border-oatmeal/60 dark:border-white/5 p-3.5 rounded-2xl space-y-3 transition-colors">
+                    <div @click="sidebarOpenSections.engine = !sidebarOpenSections.engine; playPop()" 
+                         class="flex items-center justify-between cursor-pointer group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-gears text-matcha text-[11px] w-4"></i>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Engine Mode</h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">{{ synthesisMode }}</span>
+                            <i class="fa-solid fa-chevron-down text-[8px] opacity-40 transition-transform duration-300" :class="{'rotate-180': sidebarOpenSections.engine}"></i>
+                        </div>
+                    </div>
+                    
+                    <div v-show="sidebarOpenSections.engine" class="space-y-3.5 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in text-left">
+                        <div class="space-y-1.5">
+                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Synthesis Mode</label>
+                            <div class="grid grid-cols-2 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                <button v-for="m in ['general', 'standard', 'lateral', 'manual', 'ai']" :key="m" @click="synthesisMode = m; playPop()" 
+                                        class="text-[9px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all text-center text-matcha-dark dark:text-cream"
+                                        :class="[synthesisMode === m ? 'bg-matcha text-matcha-dark shadow-sm' : 'opacity-50', m === 'ai' ? 'col-span-2' : '']">{{ m }}</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 text-left">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Primary Domain</label>
+                                <button @click="toggleCustomPrimary" class="text-[8px] font-bold text-matcha hover:opacity-100 opacity-60 transition-opacity">
+                                    {{ isCustomPrimary ? 'Select Existing' : '+ Custom' }}
+                                </button>
+                            </div>
+                            <input v-if="isCustomPrimary" type="text" v-model="customPrimaryCategory" @input="updateCustomPrimary" placeholder="e.g. Astro-Physics, Bio-Tech..." 
+                                   class="w-full px-3 py-2 text-xs bg-cream dark:bg-white/10 border border-matcha/20 rounded-lg font-bold outline-none text-matcha-dark dark:text-cream">
+                            <select v-else v-model="selectedCategory" @change="generateLateralIdea" class="w-full px-3 py-2 text-xs bg-cream dark:bg-white/10 border border-matcha/20 rounded-lg font-bold outline-none appearance-none cursor-pointer text-matcha-dark dark:text-cream">
+                                <option v-for="cat in categories" :value="cat" class="bg-cream dark:bg-matcha-surface">{{ cat }}</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Guided Autonomy (Secondary Category & Custom Directives) -->
+                        <div class="p-3 bg-oatmeal/20 dark:bg-white/5 border border-matcha/10 rounded-xl space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream">Secondary Domain</span>
+                                <button @click="toggleCustomSecondary" class="text-[8px] font-bold text-matcha hover:opacity-100 opacity-60 transition-opacity">
+                                    {{ isCustomSecondary ? 'Select Existing' : '+ Custom' }}
+                                </button>
+                            </div>
+                            <input v-if="isCustomSecondary" type="text" v-model="customSecondaryCategory" @input="updateCustomSecondary" placeholder="e.g. Ancient History, Quantum..." 
+                                   class="w-full px-3 py-2 text-xs bg-cream dark:bg-white/10 border border-matcha/20 rounded-lg font-bold outline-none text-matcha-dark dark:text-cream">
+                            <select v-else v-model="secondaryCategory" class="w-full px-3 py-2 text-xs bg-cream dark:bg-white/10 border border-matcha/20 rounded-lg font-bold outline-none appearance-none cursor-pointer text-matcha-dark dark:text-cream">
+                                <option value="None" class="bg-cream dark:bg-matcha-surface">None (Single Domain)</option>
+                                <option v-for="cat in categories.filter(c => c !== selectedCategory)" :value="cat" class="bg-cream dark:bg-matcha-surface">{{ cat }}</option>
+                            </select>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream block">Custom Synthesis Rules</label>
+                                <textarea v-model="customDirectives" rows="2" placeholder="e.g. AI must translate chatbot voice input directly to dynamic Chart.js points" class="w-full px-3 py-2 text-xs bg-cream dark:bg-white/10 border border-matcha/20 rounded-lg font-medium outline-none resize-none placeholder-matcha/30 text-matcha-dark dark:text-cream"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Target Output</label>
+                            <div class="flex bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                <button v-for="mode in [{id:'standard', label:'Single HTML'}, {id:'master', label:'Modern Stack'}]" :key="mode.id" 
+                                        @click="promptMode = mode.id; playPop()" 
+                                        class="flex-1 text-[9px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all text-center text-matcha-dark dark:text-cream"
+                                        :class="promptMode === mode.id ? 'bg-matcha text-matcha-dark shadow-sm' : 'opacity-50'">{{ mode.label }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 2: Composition & Mechanics -->
+                <div class="bg-cream/40 dark:bg-white/[0.02] border border-oatmeal/60 dark:border-white/5 p-3.5 rounded-2xl space-y-3 transition-colors">
+                    <div @click="sidebarOpenSections.composition = !sidebarOpenSections.composition; playPop()" 
+                         class="flex items-center justify-between cursor-pointer group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-cubes text-matcha text-[11px] w-4"></i>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Composition</h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                {{ mechanicCount }}x Ftr {{ useThirdConcept ? '/ ' + styleCount + 'x Sty' : '' }}
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-[8px] opacity-40 transition-transform duration-300" :class="{'rotate-180': sidebarOpenSections.composition}"></i>
+                        </div>
+                    </div>
+                    
+                    <div v-show="sidebarOpenSections.composition" class="space-y-3.5 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in text-left">
+                        <div v-for="cfg in [
+                            {label:'Mechanics', key:'mechanicCount'}, 
+                            {label:'Styles', key:'styleCount', toggle:'useThirdConcept'}, 
+                            {label:'Audiences', key:'audienceCount', toggle:'useAudience'}, 
+                            {label:'Constraints', key:'constraintCount', toggle:'useConstraint'},
+                            {label:'Navigation Views', key:'navigationCount', toggle:'useNavigation'}
+                        ]" v-show="!cfg.toggle || $data[cfg.toggle]" :key="cfg.key" class="space-y-1.5">
+                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">{{ cfg.label }}</label>
+                            <div class="flex bg-cream dark:bg-white/5 p-1 rounded-xl border border-matcha/20">
+                                <button v-for="n in [0,1,2,3,4,5]" :key="n" @click="setCount(cfg.key, n)" 
+                                        class="flex-1 py-1 text-[9px] font-bold rounded-lg transition-all text-center text-matcha-dark dark:text-cream"
+                                        :class="$data[cfg.key] === n ? 'bg-matcha text-matcha-dark shadow-sm opacity-100' : 'opacity-30 hover:opacity-60'">{{ n }}x</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 3: UX Essentials -->
+                <div class="bg-cream/40 dark:bg-white/[0.02] border border-oatmeal/60 dark:border-white/5 p-3.5 rounded-2xl space-y-3 transition-colors">
+                    <div @click="sidebarOpenSections.uxEssentials = !sidebarOpenSections.uxEssentials; playPop()" 
+                         class="flex items-center justify-between cursor-pointer group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-matcha text-[11px] w-4"></i>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">UX Essentials</h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                {{ activeUxEssentialsCount }} Active
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-[8px] opacity-40 transition-transform duration-300" :class="{'rotate-180': sidebarOpenSections.uxEssentials}"></i>
+                        </div>
+                    </div>
+                    
+                    <div v-show="sidebarOpenSections.uxEssentials" class="space-y-2 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in">
+                        <div v-for="t in [
+                            {label:'UI Style', key:'useThirdConcept', icon:'fa-paint-roller'}, 
+                            {label:'Target Audience', key:'useAudience', icon:'fa-users'}, 
+                            {label:'Constraint', key:'useConstraint', icon:'fa-triangle-exclamation'},
+                            {label:'App Navigation (SPA)', key:'useNavigation', icon:'fa-compass'},
+                            {label:'Include Inline SVG Logo', key:'createLogo', icon:'fa-image'},
+                            {label:'Micro-Animations', key:'useAnimations', icon:'fa-play'}
+                        ]" :key="t.key" class="flex flex-col bg-cream/30 dark:bg-white/[0.01] p-2 rounded-xl border border-oatmeal/40 dark:border-white/5 hover:border-matcha/20 hover:bg-cream/60 dark:hover:bg-white/[0.03] transition-all">
+                            <div class="flex items-center justify-between cursor-pointer" @click="toggleState(t.key)">
+                                <div class="flex items-center gap-2">
+                                    <i :class="['fa-solid text-[9px] text-matcha opacity-70 w-4', t.icon]"></i>
+                                    <span class="text-[9px] opacity-75 font-bold uppercase tracking-widest text-matcha-dark dark:text-cream">{{ t.label }}</span>
+                                </div>
+                                <div class="relative w-8 h-4 rounded-full transition-colors" :class="$data[t.key] ? 'bg-matcha' : 'bg-red-400/40 dark:bg-red-500/20'">
+                                    <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" :class="{'translate-x-4': $data[t.key]}"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Segmented Controls for Navigation Position -->
+                            <div v-if="t.key === 'useNavigation' && useNavigation" class="mt-3 pl-2 border-l-2 border-indigo-500/30 space-y-1.5 animate-fade-in text-left">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Nav Bar Position</label>
+                                <div class="grid grid-cols-4 gap-1 p-0.5 bg-cream dark:bg-white/5 rounded-lg border border-matcha/20">
+                                    <button v-for="pos in [{id:'top', label:'Top'}, {id:'left', label:'Left'}, {id:'right', label:'Right'}, {id:'bottom', label:'Bottom'}]" 
+                                            :key="pos.id" @click="navigationPosition = pos.id; playPop()"
+                                            class="py-1 text-[8px] font-bold rounded transition-all text-center text-matcha-dark dark:text-cream"
+                                            :class="navigationPosition === pos.id ? 'bg-indigo-500 text-white shadow-sm opacity-100' : 'opacity-40 hover:opacity-80'">
+                                        {{ pos.label }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 4: Tech Integrations -->
+                <div class="bg-cream/40 dark:bg-white/[0.02] border border-oatmeal/60 dark:border-white/5 p-3.5 rounded-2xl space-y-3 transition-colors">
+                    <div @click="sidebarOpenSections.techIntegrations = !sidebarOpenSections.techIntegrations; playPop()" 
+                         class="flex items-center justify-between cursor-pointer group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-laptop-code text-matcha text-[11px] w-4"></i>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Tech Integrations</h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                {{ activeTechIntegrationsCount }} Active
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-[8px] opacity-40 transition-transform duration-300" :class="{'rotate-180': sidebarOpenSections.techIntegrations}"></i>
+                        </div>
+                    </div>
+                    
+                    <div v-show="sidebarOpenSections.techIntegrations" class="space-y-2 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in">
+                        <div v-for="t in [
+                            {label:'API Integration', key:'useAPI', icon:'fa-plug'},
+                            {label:'Hardware Access', key:'useHardware', icon:'fa-microchip'},
+                            {label:'App Audio & SFX', key:'createAudio', icon:'fa-volume-high'},
+                            {label:'Dynamic Charts', key:'useCharts', icon:'fa-chart-line'},
+                            {label:'Token Opt: Mock Data', key:'minimalMockData', icon:'fa-database'},
+                            {label:'App AI Integration', key:'projectUseAI', icon:'fa-robot'}
+                        ]" :key="t.key" class="flex flex-col bg-cream/30 dark:bg-white/[0.01] p-2 rounded-xl border border-oatmeal/40 dark:border-white/5 hover:border-matcha/20 hover:bg-cream/60 dark:hover:bg-white/[0.03] transition-all">
+                            <div class="flex items-center justify-between cursor-pointer" @click="toggleState(t.key)">
+                                <div class="flex items-center gap-2">
+                                    <i :class="['fa-solid text-[9px] text-matcha opacity-70 w-4', t.icon]"></i>
+                                    <span class="text-[9px] opacity-75 font-bold uppercase tracking-widest text-matcha-dark dark:text-cream">{{ t.label }}</span>
+                                </div>
+                                <div class="relative w-8 h-4 rounded-full transition-colors" :class="$data[t.key] ? 'bg-matcha' : 'bg-red-400/40 dark:bg-red-500/20'">
+                                    <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" :class="{'translate-x-4': $data[t.key]}"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Checkboxes for API -->
+                            <div v-if="t.key === 'useAPI' && useAPI" class="mt-3 pl-2 border-l-2 border-matcha/30 space-y-2 animate-fade-in text-left">
+                                <label v-for="api in externalAPIs" :key="api" class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="checkbox" :value="api" v-model="selectedAPIs" class="w-3 h-3 accent-matcha bg-cream border-oatmeal rounded cursor-pointer">
+                                    <span class="text-[9px] opacity-60 group-hover:opacity-100 transition-opacity text-matcha-dark dark:text-cream">{{ api }}</span>
+                                </label>
+                                <input type="text" v-model="customAPI" placeholder="+ Custom API URL..." class="w-full mt-2 bg-transparent border-b border-matcha/20 outline-none text-[9px] py-1 text-matcha-dark dark:text-cream placeholder-matcha-dark/40 dark:placeholder-cream/40 transition-colors focus:border-matcha">
+                            </div>
+
+                            <!-- Checkboxes for Hardware -->
+                            <div v-if="t.key === 'useHardware' && useHardware" class="mt-3 pl-2 border-l-2 border-matcha/30 space-y-2 animate-fade-in text-left">
+                                <label v-for="hw in deviceCapabilities" :key="hw" class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="checkbox" :value="hw" v-model="selectedHardware" class="w-3 h-3 accent-matcha bg-cream border-oatmeal rounded cursor-pointer">
+                                    <span class="text-[9px] opacity-60 group-hover:opacity-100 transition-opacity text-matcha-dark dark:text-cream">{{ hw }}</span>
+                                </label>
+                                <input type="text" v-model="customHardware" placeholder="+ Custom Device Access..." class="w-full mt-2 bg-transparent border-b border-matcha/20 outline-none text-[9px] py-1 text-matcha-dark dark:text-cream placeholder-matcha-dark/40 dark:placeholder-cream/40 transition-colors focus:border-matcha">
+                            </div>
+
+                            <!-- Provider Buttons for App AI Integration -->
+                            <div v-if="t.key === 'projectUseAI' && projectUseAI" class="mt-3 pl-2 border-l-2 border-matcha/30 space-y-2 animate-fade-in">
+                                <div class="flex gap-2">
+                                    <button v-for="api in [{id:'gemini', label:'Gemini'}, {id:'groq', label:'Groq'}]" :key="api.id" @click="projectAiApi = api.id; saveSettings()"
+                                            class="flex-1 py-1 text-[9px] font-bold rounded-lg border transition-all text-center text-matcha-dark dark:text-cream"
+                                            :class="projectAiApi === api.id ? 'bg-matcha border-matcha text-matcha-dark shadow-sm opacity-100' : 'bg-transparent border-oatmeal dark:border-white/10 opacity-60'">
+                                        {{ api.label }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 4: Branding & Palette -->
+                <div class="bg-cream/40 dark:bg-white/[0.02] border border-oatmeal/60 dark:border-white/5 p-3.5 rounded-2xl space-y-3 transition-colors">
+                    <div @click="sidebarOpenSections.branding = !sidebarOpenSections.branding; playPop()" 
+                         class="flex items-center justify-between cursor-pointer group">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-palette text-matcha text-[11px] w-4"></i>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Branding & Vault</h4>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex gap-1 items-center">
+                                <div class="w-2 h-2 rounded-full border border-black/10 dark:border-white/10 shadow-sm" :style="{backgroundColor: color1}"></div>
+                                <div class="w-2 h-2 rounded-full border border-black/10 dark:border-white/10 shadow-sm" :style="{backgroundColor: color2}"></div>
+                                <div class="w-2 h-2 rounded-full border border-black/10 dark:border-white/10 shadow-sm" :style="{backgroundColor: color3}"></div>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-[8px] opacity-40 transition-transform duration-300" :class="{'rotate-180': sidebarOpenSections.branding}"></i>
+                        </div>
+                    </div>
+                    
+                    <div v-show="sidebarOpenSections.branding" class="space-y-4 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in text-left">
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Color Palette</label>
+                                <div class="flex gap-2">
+                                    <button @click="resetToSignature" class="text-[9px] font-bold text-matcha hover:opacity-100 opacity-60 transition-all">Signature</button>
+                                    <button @click="randomizeColors" class="text-matcha hover:rotate-180 transition-transform"><i class="fa-solid fa-dice"></i></button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 p-2 bg-cream dark:bg-white/5 rounded-xl border border-oatmeal/60 dark:border-white/5">
+                                <div v-for="c in ['color1', 'color2', 'color3']" :key="c" class="flex flex-col items-center gap-1">
+                                    <input type="color" v-model="$data[c]" class="w-full h-6 cursor-pointer bg-transparent border-0 rounded outline-none">
+                                    <span class="text-[7px] uppercase opacity-40 font-bold text-matcha-dark dark:text-cream">{{ c.replace('color', 'Slot ') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Mode Optimization -->
+                        <div class="space-y-2 pt-3 border-t border-oatmeal/30 dark:border-white/5">
+                            <label class="text-[9px] font-black uppercase tracking-widest opacity-40 block text-matcha-dark dark:text-cream">Theme Mode (Token Optimizer)</label>
+                            <div class="grid grid-cols-3 gap-1 p-0.5 bg-cream dark:bg-white/5 rounded-lg border border-matcha/20">
+                                <button v-for="mode in [{id:'dark', label:'Dark Only'}, {id:'light', label:'Light Only'}, {id:'both', label:'Both (Toggle)'}]" 
+                                        :key="mode.id" @click="projectThemeMode = mode.id; playPop()"
+                                        class="py-1.5 text-[8px] font-bold rounded transition-all text-center text-matcha-dark dark:text-cream"
+                                        :class="projectThemeMode === mode.id ? 'bg-matcha text-matcha-dark shadow-sm opacity-100' : 'opacity-40 hover:opacity-80'">
+                                    {{ mode.label }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Vault Button -->
+                        <div class="pt-3 border-t border-oatmeal/30 dark:border-white/5">
+                            <button @click="openCrudManager" class="w-full py-3 border border-dashed border-matcha/40 hover:border-matcha bg-matcha/5 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all text-matcha-dark dark:text-cream hover:bg-matcha/10">
+                                <i class="fa-solid fa-database mr-2"></i> Manage Vault
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col relative z-10 overflow-hidden bg-cream dark:bg-matcha-dark">
+            <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+                <h2 class="text-[12vw] font-black tracking-tighter">DIVERDEA</h2>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-start py-16 px-6 md:px-12 relative overflow-y-auto">
+                <div v-if="generatedIdea" class="w-full max-w-3xl flex flex-col items-center gap-8 framework-container pb-12">
+                    
+                    <!-- AI Input Panel -->
+                    <div v-if="synthesisMode === 'ai'" class="w-full bg-cream-dark dark:bg-matcha-surface/60 p-8 rounded-[2.5rem] border-2 border-matcha shadow-[0_10px_40px_rgba(156,180,140,0.15)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.3)] flex flex-col gap-6 relative z-20 transition-all duration-300">
+                        <div class="flex items-center gap-3">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-matcha/20 text-matcha text-sm animate-pulse">
+                                <i class="fa-solid fa-sparkles"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-sm font-black uppercase tracking-wider text-matcha-dark dark:text-cream">AI Concept Planner</h3>
+                                <p class="text-[9px] opacity-50 uppercase tracking-widest font-bold">Pilih Metode, Ketik Ide, Lalu Cari Konsep Terbaik</p>
+                            </div>
+                        </div>
+
+                        <!-- Tabs Selector (Methods) -->
+                        <div class="flex flex-wrap gap-2 border-b border-matcha/10 pb-4">
+                            <button @click="aiSelectedMethod = 'problem'; playPop()" :disabled="aiSolving" class="whitespace-nowrap px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-1.5"
+                                    :class="aiSelectedMethod === 'problem' ? 'bg-matcha text-matcha-dark shadow-sm' : 'bg-matcha/10 hover:bg-matcha/20 text-matcha-dark/70 dark:text-cream/70'">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Solve Problem
+                            </button>
+                            <button @click="aiSelectedMethod = 'domain'; playPop()" :disabled="aiSolving" class="whitespace-nowrap px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-1.5"
+                                    :class="aiSelectedMethod === 'domain' ? 'bg-matcha text-matcha-dark shadow-sm' : 'bg-matcha/10 hover:bg-matcha/20 text-matcha-dark/70 dark:text-cream/70'">
+                                <i class="fa-solid fa-microscope"></i> Explore Domain
+                            </button>
+                            <button @click="aiSelectedMethod = 'evolve'; playPop()" :disabled="aiSolving" class="whitespace-nowrap px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-1.5"
+                                    :class="aiSelectedMethod === 'evolve' ? 'bg-matcha text-matcha-dark shadow-sm' : 'bg-matcha/10 hover:bg-matcha/20 text-matcha-dark/70 dark:text-cream/70'">
+                                <i class="fa-solid fa-rocket"></i> Evolve Concept
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Placeholder Textarea -->
+                        <div class="relative w-full">
+                            <textarea v-model="aiProblemInput" rows="5" :placeholder="aiPlaceholder" class="w-full bg-transparent outline-none resize-none text-base font-semibold leading-relaxed placeholder-matcha-dark/30 dark:placeholder-cream-dim/30 border-b border-matcha/10 focus:border-matcha/30 transition-colors pb-4 pr-12"></textarea>
+                            <button @click="toggleSpeechRecognition('problem')" class="absolute right-2 bottom-6 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md active:scale-95 z-30"
+                                    :class="isRecordingProblem ? 'bg-red-500 text-white animate-pulse' : 'bg-matcha/20 hover:bg-matcha text-matcha-dark dark:text-cream dark:bg-white/10'">
+                                <i class="fa-solid" :class="isRecordingProblem ? 'fa-microphone-lines' : 'fa-microphone'"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div v-if="aiError" class="text-xs text-red-500 font-bold max-w-sm truncate w-full md:w-auto"><i class="fa-solid fa-circle-exclamation mr-1.5"></i>{{ aiError }}</div>
+                            <div v-else class="text-[10px] opacity-40 font-mono hidden md:block">DiverDea Ideation Module</div>
+                            
+                            <button @click="solveWithAI" :disabled="aiSolving" class="px-8 py-3 bg-matcha hover:bg-matcha/90 text-matcha-dark text-xs font-black uppercase tracking-widest rounded-full shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                                <span v-if="!aiSolving"><i class="fa-solid fa-wand-magic-sparkles"></i> Plan Concept</span>
+                                <span v-else class="flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin"></i> {{ aiStatusText || 'Thinking...' }}</span>
+                            </button>
+                        </div>
+
+                        <!-- Riwayat (History) -->
+                        <div v-if="aiHistory.length > 0 && !aiSolving && !aiPreviewConcept && aiSuggestedConcepts.length === 0" class="flex items-center gap-3 overflow-x-auto pt-4 border-t border-matcha/10 animate-fade-in">
+                            <span class="text-[9px] opacity-50 font-black uppercase tracking-widest flex-shrink-0"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Ide:</span>
+                            <button v-for="(hist, idx) in aiHistory" :key="idx" @click="restoreHistory(hist)" class="text-[10px] px-3 py-1.5 bg-matcha/5 hover:bg-matcha hover:text-matcha-dark text-matcha-dark/70 dark:text-cream/70 font-bold rounded-full transition-all truncate max-w-[150px] shadow-sm flex-shrink-0" :title="hist.prompt">
+                                {{ hist.prompt || 'Konsep ' + (idx + 1) }}
+                            </button>
+                        </div>
+
+                        <!-- 3 Suggestions -->
+                        <div v-if="aiSuggestedConcepts.length > 0 && !aiPreviewConcept" class="mt-6 border-t border-matcha/20 pt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div v-for="(concept, idx) in aiSuggestedConcepts" :key="idx" 
+                                 @click="aiPreviewConcept = concept; playPop()"
+                                 class="p-5 bg-white/40 dark:bg-white/5 border border-matcha/20 hover:border-matcha rounded-2xl cursor-pointer group transition-all hover:-translate-y-1 shadow-sm hover:shadow-md flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[9px] font-black text-matcha uppercase tracking-widest px-2 py-1 bg-matcha/10 rounded">{{ concept.category }}</span>
+                                    <div class="flex gap-1">
+                                        <div class="w-3 h-3 rounded-full" :style="{backgroundColor: concept.colors.hero}"></div>
+                                        <div class="w-3 h-3 rounded-full" :style="{backgroundColor: concept.colors.neutral}"></div>
+                                    </div>
+                                </div>
+                                <h4 class="text-sm font-black mt-1 text-matcha-dark dark:text-cream leading-tight">{{ concept.appName }}</h4>
+                                <p class="text-xs font-bold leading-tight line-clamp-2">{{ concept.product }}</p>
+                                <p class="text-[10px] opacity-60 leading-relaxed mt-2 line-clamp-3">{{ concept.description }}</p>
+                                <div class="mt-auto pt-4 flex justify-between items-center">
+                                    <span class="text-[9px] font-bold opacity-40 uppercase">{{ concept.mechanics.length }} Fitur</span>
+                                    <button class="text-[9px] font-black text-matcha uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Lihat Detail <i class="fa-solid fa-eye ml-1"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Concept Full Preview -->
+                        <div v-if="aiPreviewConcept" class="mt-6 border-t border-matcha/20 pt-6 flex flex-col gap-6 animate-fade-in">
+                            <div class="flex justify-between items-start">
+                                <button @click="aiPreviewConcept = null; playPop()" class="text-[10px] uppercase tracking-widest font-bold opacity-50 hover:opacity-100 hover:text-matcha flex items-center gap-2 transition-all"><i class="fa-solid fa-arrow-left"></i> Kembali ke 3 Pilihan</button>
+                            </div>
+                            
+                            <div class="bg-white/60 dark:bg-black/20 rounded-3xl p-6 md:p-8 border border-matcha/20 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-48 h-48 blur-3xl opacity-20 pointer-events-none" :style="{backgroundColor: aiPreviewConcept.colors.hero}"></div>
+                                
+                                <div class="flex items-center gap-4 mb-5 relative z-10">
+                                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg" :style="{backgroundColor: aiPreviewConcept.colors.hero, color: '#fff'}">
+                                        {{ aiPreviewConcept.appName.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <div>
+                                        <h2 class="text-2xl font-black tracking-tight text-matcha-dark dark:text-cream">{{ aiPreviewConcept.appName }}</h2>
+                                        <div class="flex gap-2 mt-1">
+                                            <span class="text-[10px] font-black text-matcha uppercase tracking-widest px-2 py-1 bg-matcha/10 rounded">{{ aiPreviewConcept.category }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h3 class="text-lg font-bold mb-3 relative z-10">{{ aiPreviewConcept.product }}</h3>
+                                <p class="text-sm opacity-80 leading-relaxed mb-8 relative z-10">{{ aiPreviewConcept.description }}</p>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                                    <div>
+                                        <h4 class="text-[10px] font-black text-matcha uppercase tracking-widest mb-4"><i class="fa-solid fa-gears mr-1"></i> Core Features & Synergy</h4>
+                                        <ul class="flex flex-col gap-3.5">
+                                            <li v-for="mech in aiPreviewConcept.mechanics" class="p-4 bg-matcha/5 rounded-2xl border border-matcha/10 flex flex-col gap-1.5 text-left">
+                                                <span class="text-xs font-black text-matcha-dark dark:text-cream flex items-center gap-2">
+                                                    <span class="w-1.5 h-1.5 bg-matcha rounded-full"></span>
+                                                    {{ typeof mech === 'object' ? mech.name : mech }}
+                                                </span>
+                                                <p v-if="typeof mech === 'object' && mech.description" class="text-xs opacity-70 leading-relaxed font-normal">
+                                                    {{ mech.description }}
+                                                </p>
+                                                <div v-if="typeof mech === 'object' && mech.synergy" class="text-[9px] font-black text-indigo-400 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5 mt-1 border-t border-matcha/10 pt-2">
+                                                    <i class="fa-solid fa-link text-[8px]"></i> Synergy: <span class="font-normal normal-case opacity-80 text-matcha-dark dark:text-cream">{{ mech.synergy }}</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="flex flex-col gap-6">
+                                        <div v-if="aiPreviewConcept.audiences && aiPreviewConcept.audiences.length">
+                                            <h4 class="text-[10px] font-black text-matcha uppercase tracking-widest mb-3"><i class="fa-solid fa-users mr-1"></i> Target Audience</h4>
+                                            <ul class="flex flex-wrap gap-2">
+                                                <li v-for="aud in aiPreviewConcept.audiences" class="text-[10px] font-bold px-3 py-1.5 bg-matcha/10 text-matcha-dark dark:text-cream rounded-full">{{ aud }}</li>
+                                            </ul>
+                                        </div>
+                                        <div v-if="aiPreviewConcept.styles && aiPreviewConcept.styles.length">
+                                            <h4 class="text-[10px] font-black text-matcha uppercase tracking-widest mb-3"><i class="fa-solid fa-paint-roller mr-1"></i> Visual Style</h4>
+                                            <ul class="flex flex-wrap gap-2">
+                                                <li v-for="style in aiPreviewConcept.styles" class="text-[10px] font-bold px-3 py-1.5 bg-matcha/10 text-matcha-dark dark:text-cream rounded-full">{{ style }}</li>
+                                            </ul>
+                                        </div>
+                                        <div v-if="aiPreviewConcept.navigation && aiPreviewConcept.navigation.length">
+                                            <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-compass mr-1"></i> Navigation Views (Sidebar)</h4>
+                                            <ul class="flex flex-wrap gap-2">
+                                                <li v-for="nav in aiPreviewConcept.navigation" class="text-[10px] font-bold px-3 py-1.5 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-500/20">{{ nav }}</li>
+                                            </ul>
+                                        </div>
+                                        <div v-if="aiPreviewConcept.constraints && aiPreviewConcept.constraints.length">
+                                            <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Constraints</h4>
+                                            <ul class="flex flex-col gap-2">
+                                                <li v-for="cons in aiPreviewConcept.constraints" class="text-xs font-bold px-3 py-2 bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg">{{ cons }}</li>
+                                            </ul>
+                                        </div>
+                                        <div v-if="useAPI && aiPreviewConcept.apis && aiPreviewConcept.apis.length">
+                                            <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-plug mr-1"></i> Recommended APIs</h4>
+                                            <ul class="flex flex-wrap gap-2">
+                                                <li v-for="api in aiPreviewConcept.apis" class="text-[10px] font-bold px-3 py-1.5 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-500/20">{{ api }}</li>
+                                            </ul>
+                                        </div>
+                                        <div v-if="useHardware && aiPreviewConcept.hardware && aiPreviewConcept.hardware.length">
+                                            <h4 class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-microchip mr-1"></i> Device Hardware</h4>
+                                            <ul class="flex flex-wrap gap-2">
+                                                <li v-for="hw in aiPreviewConcept.hardware" class="text-[10px] font-bold px-3 py-1.5 bg-amber-500/10 text-amber-700 dark:text-amber-300 rounded-full border border-amber-500/20">{{ hw }}</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div>
+                                            <h4 class="text-[10px] font-black text-matcha uppercase tracking-widest mb-3"><i class="fa-solid fa-palette mr-1"></i> Theme Colors</h4>
+                                            <div class="flex gap-2">
+                                                <div class="w-8 h-8 rounded-full border-2 border-white/20 shadow-sm" :style="{backgroundColor: aiPreviewConcept.colors.hero}" title="Hero"></div>
+                                                <div class="w-8 h-8 rounded-full border-2 border-white/20 shadow-sm" :style="{backgroundColor: aiPreviewConcept.colors.neutral}" title="Neutral"></div>
+                                                <div class="w-8 h-8 rounded-full border-2 border-white/20 shadow-sm" :style="{backgroundColor: aiPreviewConcept.colors.accent}" title="Accent"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- AI Viability Bento Report -->
+                                <transition name="fade-scale">
+                                    <div v-if="isValidating || validationResult" class="mt-8 pt-6 border-t border-matcha/20 relative z-10">
+                                        <!-- Loading State Skeleton -->
+                                        <div v-if="isValidating && !validationResult" class="flex flex-col gap-4 py-4 animate-pulse">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-12 h-12 rounded-full bg-indigo-500/20"></div>
+                                                <div class="flex-1 space-y-2">
+                                                    <div class="h-3 bg-indigo-500/20 rounded w-1/4"></div>
+                                                    <div class="h-2 bg-white/10 rounded w-3/4"></div>
+                                                </div>
+                                                <span class="text-[9px] font-black uppercase tracking-widest text-indigo-400/50 flex items-center gap-1">
+                                                    <i class="fa-solid fa-circle-notch fa-spin"></i> Menganalisis Kelayakan...
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Validation Result Block -->
+                                        <div v-if="validationResult" class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-2xl border bg-matcha-dark/10 dark:bg-black/40 backdrop-blur-sm"
+                                             :class="{
+                                                 'border-emerald-500/30': validationResult.verdict === 'Excellent',
+                                                 'border-matcha/30': validationResult.verdict === 'Good',
+                                                 'border-amber-500/30': validationResult.verdict === 'Risky',
+                                                 'border-red-500/30': validationResult.verdict === 'Poor'
+                                             }">
+                                            
+                                            <!-- Col 1: Score & Verdict -->
+                                            <div class="flex items-center gap-4 border-r border-matcha/10 pr-2">
+                                                <div class="w-14 h-14 rounded-full flex flex-col items-center justify-center font-black text-sm shadow-inner flex-shrink-0"
+                                                     :class="{
+                                                         'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400': validationResult.verdict === 'Excellent',
+                                                         'bg-matcha/20 text-matcha': validationResult.verdict === 'Good',
+                                                         'bg-amber-500/20 text-amber-600 dark:text-amber-400': validationResult.verdict === 'Risky',
+                                                         'bg-red-500/20 text-red-500': validationResult.verdict === 'Poor'
+                                                     }">
+                                                    <span class="text-lg leading-none">{{ validationResult.score }}</span>
+                                                    <span class="text-[7px] font-bold opacity-60">SCORE</span>
+                                                </div>
+                                                <div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <h5 class="text-[11px] font-black uppercase tracking-wider"
+                                                            :class="{
+                                                                'text-emerald-600 dark:text-emerald-400': validationResult.verdict === 'Excellent',
+                                                                'text-matcha': validationResult.verdict === 'Good',
+                                                                'text-amber-600 dark:text-amber-400': validationResult.verdict === 'Risky',
+                                                                'text-red-500': validationResult.verdict === 'Poor'
+                                                            }">
+                                                            {{ validationResult.verdict }}
+                                                        </h5>
+                                                    </div>
+                                                    <span class="inline-block mt-1 text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wide bg-matcha-dark/20 dark:bg-white/10 text-matcha-dark dark:text-cream">
+                                                        Complexity: {{ validationResult.technicalComplexity }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Col 2: Market Fit & Risk -->
+                                            <div class="space-y-2.5 text-left border-r border-matcha/10 pr-2">
+                                                <div>
+                                                    <p class="text-[8px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-chart-line"></i> Market Fit</p>
+                                                    <p class="text-[11px] opacity-75 leading-relaxed mt-0.5">{{ validationResult.marketFit }}</p>
+                                                </div>
+                                                <div>
+                                                    <p class="text-[8px] font-black text-red-400 uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Risiko Utama</p>
+                                                    <p class="text-[11px] opacity-75 leading-relaxed mt-0.5">{{ validationResult.reason }}</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Col 3: Recommendation -->
+                                            <div class="p-4 rounded-xl bg-matcha/5 border border-matcha/10 flex flex-col gap-3 justify-between text-left">
+                                                <div>
+                                                    <p class="text-[8px] font-black text-matcha uppercase tracking-widest flex items-center gap-1 mb-1"><i class="fa-solid fa-lightbulb"></i> Saran Improvisasi</p>
+                                                    <p class="text-[10px] opacity-90 leading-relaxed italic font-medium text-cream-dark dark:text-cream/90">{{ validationResult.tweak }}</p>
+                                                </div>
+                                                <button @click="applyViabilityTweak" :disabled="aiTweaking" class="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 disabled:bg-indigo-500/40 text-white text-[9px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:-translate-y-0.5 active:translate-y-0">
+                                                    <i v-if="!aiTweaking" class="fa-solid fa-wand-magic-sparkles"></i>
+                                                    <i v-else class="fa-solid fa-circle-notch fa-spin"></i>
+                                                    {{ aiTweaking ? 'Mengoptimasi...' : 'Auto-Optimasi Ide' }}
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </transition>
+                            </div>
+                            <div class="flex flex-col md:flex-row justify-between items-center pt-2 gap-4">
+                                <div class="flex items-center gap-2 bg-white/40 dark:bg-black/20 p-1.5 rounded-2xl border border-matcha/20 w-full md:w-auto flex-1 max-w-lg">
+                                    <input v-model="aiTweakInput" type="text" placeholder="Revisi parsial (misal: 'ganti warnanya jadi merah gelap')..." class="flex-1 bg-transparent px-4 outline-none text-xs font-semibold placeholder-matcha-dark/30 dark:placeholder-cream-dim/30" @keyup.enter="tweakAiConcept">
+                                    <button @click="toggleSpeechRecognition('tweak')" class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
+                                            :class="isRecordingTweak ? 'bg-red-500 text-white animate-pulse' : 'bg-matcha/10 hover:bg-matcha/20 text-matcha-dark dark:text-cream'">
+                                        <i class="fa-solid" :class="isRecordingTweak ? 'fa-microphone-lines' : 'fa-microphone'"></i>
+                                    </button>
+                                    <button @click="tweakAiConcept" :disabled="aiTweaking" class="px-5 py-2.5 bg-matcha/20 hover:bg-matcha text-matcha-dark text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 shadow-sm">
+                                        <i v-if="!aiTweaking" class="fa-solid fa-pen-magic"></i>
+                                        <i v-else class="fa-solid fa-circle-notch fa-spin"></i> Revisi
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                                    <!-- App AI Integration quick toggle -->
+                                    <div class="flex items-center gap-3 bg-white/40 dark:bg-white/5 border border-matcha/20 px-4 py-3 rounded-2xl">
+                                        <div class="flex items-center gap-2 cursor-pointer animate-fade-in" @click="projectUseAI = !projectUseAI; saveSettings()">
+                                            <span class="text-[9px] font-black uppercase tracking-wider opacity-70">App AI:</span>
+                                            <div class="relative w-8 h-4 bg-oatmeal rounded-full transition-colors" :class="{'bg-matcha': projectUseAI}">
+                                                <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" :class="{'translate-x-4': projectUseAI}"></div>
+                                            </div>
+                                        </div>
+                                        <select v-if="projectUseAI" v-model="projectAiApi" @change="saveSettings" class="bg-transparent text-[9px] font-bold outline-none cursor-pointer border-l border-matcha/20 pl-2 text-matcha-dark dark:text-cream dark:bg-[#1a2e1a]">
+                                            <option value="gemini" class="bg-cream-dark dark:bg-matcha-dark">Gemini</option>
+                                            <option value="groq" class="bg-cream-dark dark:bg-matcha-dark">Groq</option>
+                                        </select>
+                                    </div>
+                                    <!-- Viability Check Button -->
+                                    <button @click="checkConceptViability" :disabled="isValidating" class="px-6 py-4 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 border border-indigo-500/30 text-xs font-black uppercase tracking-widest rounded-2xl transition-all flex items-center gap-2">
+                                        <i v-if="!isValidating" class="fa-solid fa-magnifying-glass-chart"></i>
+                                        <i v-else class="fa-solid fa-circle-notch fa-spin"></i>
+                                        {{ validationResult ? 'Recheck Viability' : 'Cek Kelayakan' }}
+                                    </button>
+                                    <button @click="applyAiConcept" class="px-8 py-4 bg-matcha hover:bg-matcha/90 text-matcha-dark text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl hover:-translate-y-1 transition-all flex items-center gap-3 justify-center">
+                                        Proceed & Generate Slots <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Slider -->
+                    <div class="framework-item relative group flex items-center justify-center py-2 w-full" :class="{'ring-1 ring-matcha/20 rounded-lg': currentFocus.type === 'product'}">
+                        <button @click="updateSlot('product', 0, -1)" class="absolute left-0 opacity-0 group-hover:opacity-100 p-2 text-matcha"><i class="fa-solid fa-chevron-left"></i></button>
+                        <div class="flex items-center gap-3 cursor-pointer" @click="currentFocus = {type:'product', index:0}">
+                            <input v-if="synthesisMode === 'manual'" v-model="productSlot.value" 
+                                   placeholder="Concept / Product Name..."
+                                   class="text-xl md:text-2xl text-center bg-transparent border-b border-matcha/20 outline-none italic w-full text-matcha-dark dark:text-cream">
+                            <span v-else class="text-xl md:text-2xl text-matcha-dark/60 dark:text-cream-dim/50 italic" :class="{'opacity-40 line-through': productSlot.locked}">{{ productSlot.value }}</span>
+                            <button @click.stop="productSlot.locked = !productSlot.locked" class="text-xs" :class="productSlot.locked ? 'text-red-400' : 'text-matcha opacity-0 group-hover:opacity-100'">
+                                <i class="fa-solid" :class="productSlot.locked ? 'fa-lock' : 'fa-lock-open'"></i>
+                            </button>
+                        </div>
+                        <button @click="updateSlot('product', 0, 1)" class="absolute right-0 opacity-0 group-hover:opacity-100 p-2 text-matcha"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+
+                    <span class="w-12 h-0.5 bg-matcha/20"></span>
+
+                    <!-- Mechanic Sliders -->
+                    <div v-for="(slot, i) in mechanicSlots.slice(0, mechanicCount)" :key="'m'+i" 
+                         class="framework-item relative group flex items-center justify-center w-full"
+                         :class="[i === 0 ? 'py-4' : 'mt-1', currentFocus.type === 'mechanic' && currentFocus.index === i ? 'ring-1 ring-matcha/20 rounded-lg' : '']">
+                        <button @click="updateSlot('mechanic', i, -1)" class="absolute left-0 opacity-0 group-hover:opacity-100 p-2 text-matcha"><i class="fa-solid fa-chevron-left"></i></button>
+                        <div class="flex items-center gap-4 cursor-pointer" @click="currentFocus = {type:'mechanic', index:i}">
+                            <input v-if="synthesisMode === 'manual'" v-model="slot.value"
+                                   :placeholder="i === 0 ? 'Core Mechanic / Feature...' : 'Add Mechanic...'"
+                                   class="bg-transparent border-b border-matcha/20 outline-none text-center font-black tracking-tight leading-tight w-full"
+                                   :class="[i === 0 ? 'text-4xl md:text-6xl text-matcha-dark dark:text-cream' : 'text-xl opacity-60 text-matcha-dark dark:text-cream']">
+                            <span v-else class="text-matcha-dark dark:text-cream font-black tracking-tight leading-tight text-center" 
+                                  :class="[i === 0 ? 'text-4xl md:text-6xl' : 'text-xl opacity-60', slot.locked ? 'text-red-400/80' : '']">{{ slot.value }}</span>
+                            <button @click.stop="slot.locked = !slot.locked" class="text-xs" :class="slot.locked ? 'text-red-400' : 'text-matcha opacity-0 group-hover:opacity-100'">
+                                <i class="fa-solid" :class="slot.locked ? 'fa-lock' : 'fa-lock-open'"></i>
+                            </button>
+                        </div>
+                        <button @click="updateSlot('mechanic', i, 1)" class="absolute right-0 opacity-0 group-hover:opacity-100 p-2 text-matcha"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+
+                    <!-- Meta Sliders -->
+                    <div v-for="group in [
+                        {type:'style', state:styleSlots, count:styleCount, active:useThirdConcept, color:'matcha'}, 
+                        {type:'audience', state:audienceSlots, count:audienceCount, active:useAudience, color:'amber'}, 
+                        {type:'constraint', state:constraintSlots, count:constraintCount, active:useConstraint, color:'violet'},
+                        {type:'navigation', state:navigationSlots, count:navigationCount, active:useNavigation, color:'indigo'}
+                    ]" :key="group.type" v-show="group.active" class="w-full space-y-2 mt-4">
+                        <div v-for="(slot, i) in group.state.slice(0, group.count)" :key="group.type+i"
+                             class="framework-item relative group flex items-center justify-center w-full py-1"
+                             :class="{'ring-1 ring-matcha/10 rounded-lg': currentFocus.type === group.type && currentFocus.index === i}">
+                            <button @click="updateSlot(group.type, i, -1)" class="absolute left-0 opacity-0 group-hover:opacity-100 p-1 text-matcha"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+                            <div class="flex items-center gap-2 px-4 py-1.5 rounded-full border shadow-sm transition-all" 
+                                 :class="[`bg-${group.color}-400/10 border-${group.color}-400/20`, slot.locked ? 'border-red-400/40' : '']"
+                                 @click="currentFocus = {type:group.type, index:i}">
+                                <input v-if="synthesisMode === 'manual'" v-model="slot.value"
+                                       :placeholder="group.type + '...'"
+                                       class="bg-transparent outline-none text-[11px] font-bold uppercase tracking-wider text-center w-24">
+                                <span v-else class="text-[11px] font-bold uppercase tracking-wider">{{ i === 0 ? group.type + ':' : '+' }} {{ slot.value }}</span>
+                                <button @click.stop="slot.locked = !slot.locked" class="text-[10px]" :class="slot.locked ? 'text-red-400' : 'opacity-40'">
+                                    <i class="fa-solid" :class="slot.locked ? 'fa-lock' : 'fa-lock-open'"></i>
+                                </button>
+                            </div>
+                            <button @click="updateSlot(group.type, i, 1)" class="absolute right-0 opacity-0 group-hover:opacity-100 p-1 text-matcha"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Actions -->
+                    <div class="flex flex-col items-center gap-6 mt-12">
+                        <button @click="generateLateralIdea" class="px-12 py-4 bg-matcha hover:bg-matcha/90 text-matcha-dark rounded-full font-black shadow-xl transition-all hover:-translate-y-1">
+                            Synthesize Idea
+                        </button>
+                        <div class="flex gap-8">
+                            <button @click="saveCurrentIdea" class="text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:text-matcha"><i class="fa-solid fa-bookmark mr-2"></i> Save</button>
+                            <button @click="generateAiPrompt()" class="text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:text-matcha"><i class="fa-solid fa-robot mr-2"></i> Prompt</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback UI -->
+                <div v-else class="flex flex-col items-center opacity-30 animate-pulse">
+                    <i class="fa-solid fa-power-off text-6xl mb-6"></i>
+                    <p class="font-mono tracking-widest uppercase">System Standby</p>
+                    <button @click="generateLateralIdea" class="mt-8 px-6 py-2 border border-matcha rounded-full text-xs font-bold uppercase tracking-widest hover:bg-matcha hover:text-matcha-dark transition-all">Initialize Engine</button>
+                </div>
+            </div>
+
+            <!-- Prompt Overlay -->
+            <transition name="slide-up">
+                <div v-if="generatedPrompt" class="absolute bottom-0 w-full bg-matcha-dark/95 backdrop-blur-xl border-t border-matcha/20 p-8 z-50 h-[55vh] flex flex-col shadow-2xl">
+                    
+                    <!-- Overlay Header -->
+                    <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-4 flex-shrink-0">
+                        <div class="flex items-center gap-4">
+                            <div class="flex gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-400 cursor-pointer" @click="generatedPrompt = ''; aiResponse = ''; aiLoading = false; aiPlanResult = null; aiCurrentStep = 0;"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            </div>
+                            <span class="text-matcha font-mono text-[10px] uppercase tracking-widest font-bold">AI.Prototype.Compiler</span>
+                            
+                            <!-- Step Indicator -->
+                            <div v-if="aiLoading || aiPlanResult" class="flex items-center gap-2 ml-2">
+                                <div class="flex items-center gap-1.5">
+                                    <!-- Step 1 pill -->
+                                    <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all duration-500"
+                                         :class="aiCurrentStep === 1 ? 'bg-indigo-500 text-white animate-pulse' : (aiPlanResult ? 'bg-emerald-500/80 text-white' : 'bg-white/10 text-white/30')">
+                                        <i class="fa-solid" :class="aiPlanResult ? 'fa-check' : (aiCurrentStep === 1 ? 'fa-circle-notch fa-spin' : 'fa-drafting-compass')"></i>
+                                        Plan
+                                    </div>
+                                    <div class="w-4 h-px" :class="aiPlanResult ? 'bg-emerald-500/60' : 'bg-white/10'"></div>
+                                    <!-- Step 2 pill -->
+                                    <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all duration-500"
+                                         :class="aiCurrentStep === 2 ? 'bg-matcha text-matcha-dark animate-pulse' : (aiResponse && !aiLoading ? 'bg-emerald-500/80 text-white' : 'bg-white/10 text-white/30')">
+                                        <i class="fa-solid" :class="(aiResponse && !aiLoading) ? 'fa-check' : (aiCurrentStep === 2 ? 'fa-circle-notch fa-spin' : 'fa-code')"></i>
+                                        Build
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <!-- Step 1 Button: Generate Blueprint -->
+                            <button v-if="!aiLoading && !aiPlanResult && !aiResponse" @click="planArchitecture" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-[10px] font-black uppercase rounded-lg transition-colors flex items-center gap-2 shadow-md">
+                                <i class="fa-solid fa-drafting-compass"></i> 1. Plan Blueprint
+                            </button>
+                            <!-- Step 2 Button: Build Full Code (only shown when blueprint is ready) -->
+                            <button v-if="!aiLoading && aiPlanResult && !aiResponse" @click="buildPrototype" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-[10px] font-black uppercase rounded-lg transition-colors flex items-center gap-2 shadow-md">
+                                <i class="fa-solid fa-code"></i> 2. Build Full Code
+                            </button>
+                            <!-- Reset Plan Button -->
+                            <button v-if="!aiLoading && aiPlanResult && !aiResponse" @click="aiPlanResult = null; aiCurrentStep = 0;" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-cream text-[10px] font-black uppercase rounded-lg transition-colors">
+                                <i class="fa-solid fa-rotate-left"></i> Reset
+                            </button>
+                            <button v-if="aiLoading" @click="cancelAI" class="px-4 py-2 bg-red-500 hover:bg-red-400 text-white text-[10px] font-black uppercase rounded-lg transition-colors">
+                                <i class="fa-solid fa-stop"></i> Stop
+                            </button>
+                            <button @click="copyToClipboard($event)" class="px-4 py-2 bg-matcha hover:bg-matcha/80 text-matcha-dark text-[10px] font-black uppercase rounded-lg transition-colors">Copy Code</button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Area -->
+                    <div class="flex-1 overflow-y-auto min-h-0 flex flex-col gap-4">
+
+                        <!-- Step 1: Blueprint Plan Card (shown while planning OR after plan is ready before code starts) -->
+                        <transition name="fade-scale">
+                            <div v-if="aiPlanResult" class="flex-shrink-0 bg-white/5 border border-indigo-500/30 rounded-2xl p-5 grid grid-cols-1 md:grid-cols-3 gap-5 animate-fade-in text-left">
+                                <!-- Synergy -->
+                                <div class="md:col-span-3">
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-1"><i class="fa-solid fa-link mr-1"></i>Synergy Analysis (Editable)</p>
+                                    <textarea v-model="aiPlanResult.synergyAnalysis" rows="2" class="w-full bg-transparent outline-none text-[11px] text-cream/70 border-b border-indigo-500/10 focus:border-indigo-500/30 resize-none font-semibold leading-relaxed"></textarea>
+                                </div>
+                                <!-- Components -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-matcha"><i class="fa-solid fa-layer-group mr-1"></i>Components</p>
+                                        <button @click="aiPlanResult.components.push('NewComponent: Purpose')" class="text-[8px] text-matcha hover:opacity-100 opacity-60"><i class="fa-solid fa-plus"></i> Add</button>
+                                    </div>
+                                    <ul class="space-y-1.5">
+                                        <li v-for="(c, idx) in aiPlanResult.components" :key="idx" class="flex items-center gap-1.5 text-[9px] text-cream/60 border-l border-matcha/30 pl-2 group">
+                                            <input v-model="aiPlanResult.components[idx]" class="bg-transparent outline-none flex-1 text-cream/70 font-mono text-[9px] focus:border-b focus:border-matcha/30">
+                                            <button @click="aiPlanResult.components.splice(idx, 1)" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-opacity"><i class="fa-solid fa-trash text-[8px]"></i></button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- Algorithms -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-amber-400"><i class="fa-solid fa-microchip mr-1"></i>Critical Algorithms</p>
+                                        <button @click="aiPlanResult.criticalAlgorithms.push('NewAlg: Description')" class="text-[8px] text-amber-400 hover:opacity-100 opacity-60"><i class="fa-solid fa-plus"></i> Add</button>
+                                    </div>
+                                    <ul class="space-y-1.5">
+                                        <li v-for="(a, idx) in aiPlanResult.criticalAlgorithms" :key="idx" class="flex items-center gap-1.5 text-[9px] text-cream/60 border-l border-amber-400/30 pl-2 group">
+                                            <input v-model="aiPlanResult.criticalAlgorithms[idx]" class="bg-transparent outline-none flex-1 text-cream/70 font-mono text-[9px] focus:border-b focus:border-amber-400/30">
+                                            <button @click="aiPlanResult.criticalAlgorithms.splice(idx, 1)" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-opacity"><i class="fa-solid fa-trash text-[8px]"></i></button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- Pitfalls -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <p class="text-[9px] font-black uppercase tracking-widest text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Potential Pitfalls</p>
+                                        <button @click="aiPlanResult.potentialPitfalls.push('NewRisk: Mitigation')" class="text-[8px] text-red-400 hover:opacity-100 opacity-60"><i class="fa-solid fa-plus"></i> Add</button>
+                                    </div>
+                                    <ul class="space-y-1.5">
+                                        <li v-for="(p, idx) in aiPlanResult.potentialPitfalls" :key="idx" class="flex items-center gap-1.5 text-[9px] text-cream/60 border-l border-red-400/30 pl-2 group">
+                                            <input v-model="aiPlanResult.potentialPitfalls[idx]" class="bg-transparent outline-none flex-1 text-cream/70 font-mono text-[9px] focus:border-b focus:border-red-400/30">
+                                            <button @click="aiPlanResult.potentialPitfalls.splice(idx, 1)" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-opacity"><i class="fa-solid fa-trash text-[8px]"></i></button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </transition>
+
+                        <!-- Step 1 loading placeholder (before plan arrives) -->
+                        <div v-if="aiLoading && aiCurrentStep === 1 && !aiPlanResult" class="flex-shrink-0 bg-white/5 border border-indigo-500/20 rounded-2xl p-5 space-y-3 animate-pulse">
+                            <div class="h-2.5 bg-indigo-500/20 rounded-full w-1/4"></div>
+                            <div class="h-2 bg-white/10 rounded-full w-full"></div>
+                            <div class="h-2 bg-white/10 rounded-full w-3/4"></div>
+                            <div class="grid grid-cols-3 gap-4 pt-2">
+                                <div class="space-y-1.5"><div class="h-2 bg-matcha/20 rounded w-1/2"></div><div class="h-2 bg-white/5 rounded w-full"></div><div class="h-2 bg-white/5 rounded w-5/6"></div></div>
+                                <div class="space-y-1.5"><div class="h-2 bg-amber-400/20 rounded w-1/2"></div><div class="h-2 bg-white/5 rounded w-full"></div><div class="h-2 bg-white/5 rounded w-4/5"></div></div>
+                                <div class="space-y-1.5"><div class="h-2 bg-red-400/20 rounded w-1/2"></div><div class="h-2 bg-white/5 rounded w-full"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Streamed Code Output -->
+                        <div v-if="aiResponse" class="flex-1 font-sans text-sm text-cream whitespace-pre-wrap leading-relaxed markdown-body">
+                            <div v-html="formatMarkdown(aiResponse)"></div>
+                            <div v-if="aiLoading && aiCurrentStep === 2" class="mt-4 text-matcha animate-pulse"><i class="fa-solid fa-circle-notch fa-spin"></i> Building prototype...</div>
+                            <div v-if="aiError" class="mt-4 p-3 bg-red-500/20 text-red-300 border border-red-500/30 rounded-lg text-xs">{{ aiError }}</div>
+                        </div>
+
+                        <!-- Raw Prompt View (when no AI response yet and not loading) -->
+                        <div v-if="!aiResponse && !aiLoading" class="flex-1 font-mono text-[11px] text-matcha/80 whitespace-pre-wrap leading-relaxed">{{ generatedPrompt }}</div>
+
+                        <!-- Error display (Step 1 failure) -->
+                        <div v-if="aiError && !aiLoading" class="flex-shrink-0 p-3 bg-red-500/20 text-red-300 border border-red-500/30 rounded-lg text-xs">{{ aiError }}</div>
+                    </div>
+                </div>
+            </transition>
+
+        </main>
+
+        <!-- Sidebar Right: Library -->
+        <aside class="w-[260px] h-full bg-cream-dark dark:bg-matcha-surface border-l border-oatmeal flex flex-col z-20 transition-colors">
+            <div class="p-8 border-b border-oatmeal flex justify-between items-center">
+                <h3 class="text-[10px] font-bold opacity-40 uppercase tracking-widest">Library</h3>
+                <span class="text-[10px] font-mono opacity-40">{{ savedIdeas.length }}</span>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div v-for="idea in savedIdeas" :key="idea.id" class="bg-cream p-5 rounded-xl border border-oatmeal hover:border-matcha transition-all group relative">
+                    <div class="space-y-2 mb-4">
+                        <p class="text-[8px] font-bold text-matcha uppercase tracking-widest">{{ idea.appName }}</p>
+                        <p class="text-sm font-bold leading-tight">{{ idea.product }}</p>
+                        <p class="text-[10px] opacity-60">+ {{ idea.mechanics && idea.mechanics.length ? idea.mechanics[0] : 'Concept' }}</p>
+                    </div>
+                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button @click="generateAiPrompt(idea)" class="flex-1 py-1.5 text-[9px] font-bold bg-matcha/20 rounded-md">Generate</button>
+                        <button @click="deleteIdea(idea.id)" class="px-2 py-1.5 text-red-500 bg-red-50 rounded-md"><i class="fa-solid fa-trash text-[9px]"></i></button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CRUD Modal -->
+        <transition name="slide-up">
+            <div v-if="showCrudModal" class="fixed inset-0 bg-matcha-dark/60 backdrop-blur-lg z-[150] flex items-center justify-center p-8">
+                <div class="bg-cream dark:bg-matcha-surface w-full max-w-6xl h-[85vh] rounded-3xl border border-oatmeal flex flex-col shadow-2xl relative">
+                    <div class="p-8 border-b border-oatmeal flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold">Concept Vault</h2>
+                            <p class="text-[9px] uppercase opacity-40 mt-1 tracking-widest">Manage your manual assets and custom entries</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <select v-model="modalCategory" class="px-3 py-2 text-xs bg-cream border border-matcha/20 rounded-lg font-bold outline-none">
+                                <option v-for="cat in categories" :value="cat">{{ cat }}</option>
+                            </select>
+                            <button @click="showCrudModal = false" class="w-10 h-10 rounded-full bg-oatmeal/20 flex items-center justify-center text-matcha-dark dark:text-cream"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-3 gap-8 p-8 h-full">
+                        <div v-for="col in [
+                            {label: 'Mechanics', list: synthesisMode === 'general' ? 'generalMechanics' : (synthesisMode === 'lateral' ? 'conceptsListLateral' : 'conceptsList1')},
+                            {label: 'Products', list: synthesisMode === 'general' ? 'generalProducts' : 'conceptsList2'},
+                            {label: 'Styles', list: 'conceptsList3'}
+                        ]" :key="col.label" class="flex flex-col bg-oatmeal/10 rounded-2xl p-6 h-full overflow-hidden">
+                            <h3 class="text-[10px] font-bold uppercase tracking-widest mb-4 text-matcha">{{ col.label }}</h3>
+                            <input @keyup.enter="addCrudItemDirect(col.list, $event)" type="text" placeholder="+ Add..." class="w-full px-3 py-2 text-xs bg-cream border border-matcha/20 rounded-lg mb-4 outline-none">
+                            <div class="flex-1 overflow-y-auto space-y-2 pr-2">
+                                <div v-for="(item, idx) in getData(col.list)" :key="idx" 
+                                     class="p-3 rounded-lg text-xs bg-cream border border-oatmeal/60 flex items-center justify-between group">
+                                    <div class="flex-1 truncate mr-2">
+                                        <input v-if="editingSlot && editingSlot.list === col.list && editingSlot.index === idx" 
+                                               v-model="editingValue" @keyup.enter="saveCrudEdit" @keyup.esc="editingSlot = null"
+                                               class="w-full bg-transparent border-b border-matcha outline-none">
+                                        <span v-else class="opacity-70">{{ item }}</span>
+                                    </div>
+                                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button v-if="editingSlot && editingSlot.list === col.list && editingSlot.index === idx" @click="saveCrudEdit" class="text-green-500"><i class="fa-solid fa-check text-[10px]"></i></button>
+                                        <button v-else @click="startCrudEdit(col.list, idx)" class="text-matcha"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                        <button @click="deleteCrudItem(col.list, idx)" class="text-red-400"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Settings Modal -->
+        <transition name="slide-up">
+            <div v-if="showSettingsModal" class="fixed inset-0 bg-matcha-dark/60 backdrop-blur-lg z-[150] flex items-center justify-center p-8">
+                <div class="bg-cream dark:bg-matcha-surface w-full max-w-2xl rounded-3xl border border-oatmeal flex flex-col shadow-2xl relative">
+                    <div class="p-8 border-b border-oatmeal flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold">Engine Settings</h2>
+                            <p class="text-[9px] uppercase opacity-40 mt-1 tracking-widest">Configure AI Providers & Models</p>
+                        </div>
+                        <button @click="showSettingsModal = false" class="w-10 h-10 rounded-full bg-oatmeal/20 flex items-center justify-center text-matcha-dark dark:text-cream hover:scale-105 transition-transform"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="p-8 space-y-6">
+                        <!-- Provider Selection -->
+                        <div>
+                            <label class="text-[10px] font-bold uppercase tracking-widest opacity-40 block mb-3">Active Provider</label>
+                            <div class="flex gap-4">
+                                <button v-for="prov in Object.values(AI_PROVIDERS)" :key="prov.id" @click="aiProvider = prov.id; saveSettings()"
+                                        class="flex-1 py-4 px-6 rounded-xl border flex flex-col items-center gap-2 transition-all"
+                                        :class="aiProvider === prov.id ? 'bg-matcha/10 border-matcha text-matcha-dark dark:text-cream shadow-sm ring-1 ring-matcha/30' : 'bg-transparent border-oatmeal dark:border-white/10 opacity-60 hover:opacity-100'">
+                                    <i :class="['fa-brands text-2xl', prov.icon]" :style="{color: aiProvider === prov.id ? prov.color : 'inherit'}"></i>
+                                    <span class="text-sm font-bold">{{ prov.label }}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- API Key -->
+                        <div v-if="aiProvider === 'gemini'">
+                            <label class="text-[10px] font-bold uppercase tracking-widest opacity-40 block mb-2">Gemini API Key</label>
+                            <input type="password" v-model="aiGeminiKey" @blur="saveSettings" placeholder="AIzaSy..." class="w-full px-4 py-3 bg-white/40 dark:bg-white/5 border border-oatmeal dark:border-white/10 rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-matcha transition-all">
+                            <p class="text-[9px] opacity-40 mt-2">Get your free key at <a href="https://aistudio.google.com" target="_blank" class="text-matcha hover:underline">Google AI Studio</a>.</p>
+                        </div>
+                        <div v-if="aiProvider === 'groq'">
+                            <label class="text-[10px] font-bold uppercase tracking-widest opacity-40 block mb-2">Groq API Key</label>
+                            <input type="password" v-model="aiGroqKey" @blur="saveSettings" placeholder="gsk_..." class="w-full px-4 py-3 bg-white/40 dark:bg-white/5 border border-oatmeal dark:border-white/10 rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-matcha transition-all">
+                            <p class="text-[9px] opacity-40 mt-2">Get your free key at <a href="https://console.groq.com" target="_blank" class="text-matcha hover:underline">Groq Console</a>.</p>
+                        </div>
+
+                        <!-- Model Selection -->
+                        <div>
+                            <label class="text-[10px] font-bold uppercase tracking-widest opacity-40 block mb-2">Model</label>
+                            <select v-model="aiModel" @change="saveSettings" class="w-full px-4 py-3 bg-white/40 dark:bg-white/5 border border-oatmeal dark:border-white/10 rounded-xl text-sm font-bold outline-none focus:ring-1 focus:ring-matcha transition-all appearance-none cursor-pointer">
+                                <option v-for="m in AI_PROVIDERS[aiProvider].models" :value="m.id" :key="m.id">{{ m.label }} {{ m.badge ? '('+m.badge+')' : '' }}</option>
+                            </select>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Debug Overlay (Point 6: Trace & Bottleneck UI) -->
+        <div v-if="isDebugMode" class="fixed top-20 right-6 w-80 max-h-[70vh] bg-matcha-dark/95 backdrop-blur-xl border border-matcha/30 rounded-2xl z-[200] flex flex-col shadow-2xl overflow-hidden font-mono">
+            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-matcha/10">
+                <span class="text-[10px] font-bold text-matcha uppercase tracking-widest">Debug Monitor</span>
+                <div class="flex gap-2">
+                    <button @click="clearLogs" class="text-[8px] bg-red-500/20 text-red-400 px-2 py-1 rounded">Clear</button>
+                    <button @click="isDebugMode = false" class="text-white/40 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            
+            <div class="p-4 space-y-4 overflow-y-auto">
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-white/5 p-2 rounded-lg border border-white/5 text-center">
+                        <p class="text-[8px] opacity-40 uppercase">Synthesis</p>
+                        <p class="text-xs font-bold text-matcha">{{ lastPerf }}ms</p>
+                    </div>
+                    <div class="bg-white/5 p-2 rounded-lg border border-white/5 text-center">
+                        <p class="text-[8px] opacity-40 uppercase">Errors</p>
+                        <p class="text-xs font-bold" :class="errorLog.length ? 'text-red-400' : 'text-green-400'">{{ errorLog.length }}</p>
+                    </div>
+                </div>
+
+                <!-- Trace Log -->
+                <div class="space-y-1">
+                    <p class="text-[8px] opacity-40 uppercase mb-2">Live Trace</p>
+                    <div v-for="(log, idx) in traceLog" :key="idx" class="text-[9px] border-l-2 pl-2 py-1 leading-tight" 
+                         :class="log.type === 'error' ? 'border-red-500 text-red-300' : 'border-matcha text-matcha/70'">
+                        <span class="opacity-40">[{{ log.time }}]</span> {{ log.msg }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-white/5 border-t border-white/10">
+                <button @click="checkDataHealth" class="w-full py-2 bg-matcha/20 hover:bg-matcha/30 text-matcha text-[9px] font-bold uppercase rounded-lg transition-all">Run Health Check</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

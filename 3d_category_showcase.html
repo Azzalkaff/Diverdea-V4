@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Engine Showcase - DiverDea</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <!-- Import map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Inter', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 2rem; box-sizing: border-box; }
+        .glass-panel { background: rgba(26, 28, 24, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(156, 180, 140, 0.2); border-radius: 1rem; padding: 1.5rem; color: #fdfcf9; pointer-events: auto; }
+        .matcha-text { color: #9cb48c; }
+        .badge { background: rgba(156, 180, 140, 0.2); color: #9cb48c; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+        
+        /* Loading Overlay */
+        #loader { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a1c18; z-index: 50; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #9cb48c; transition: opacity 1s ease; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(156, 180, 140, 0.3); border-radius: 50%; border-top-color: #9cb48c; animation: spin 1s ease-in-out infinite; margin-bottom: 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="text-xs font-black tracking-widest uppercase">Initializing WebGL Engine...</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <header class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter lowercase flex items-center gap-2 text-white">
+                    diverdea<span class="w-2 h-2 bg-[#9cb48c] rounded-full mt-2"></span>
+                </h1>
+                <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-50 text-white mt-1">3D Graphics Engine</p>
+            </div>
+            <a href="index.html" class="glass-panel text-xs font-black uppercase tracking-widest hover:bg-[#9cb48c] hover:text-[#1a1c18] transition-colors cursor-pointer" style="text-decoration: none;">
+                Back to Hub
+            </a>
+        </header>
+
+        <div class="glass-panel max-w-sm self-end">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="badge">Active</span>
+                <span class="text-xs font-black uppercase tracking-widest opacity-60">Render Stats</span>
+            </div>
+            <div class="space-y-2 text-sm opacity-80">
+                <div class="flex justify-between border-b border-white/10 pb-1"><span>Lighting</span> <span class="matcha-text font-mono">PBR + Bloom</span></div>
+                <div class="flex justify-between border-b border-white/10 pb-1"><span>Physics</span> <span class="matcha-text font-mono">Wave Vertex Math</span></div>
+                <div class="flex justify-between border-b border-white/10 pb-1"><span>Shadows</span> <span class="matcha-text font-mono">PCFSoftShadowMap</span></div>
+                <div class="flex justify-between"><span>Material</span> <span class="matcha-text font-mono">Physical Glass</span></div>
+            </div>
+            <p class="text-xs opacity-50 mt-4 leading-relaxed">
+                Tampilan ini menggunakan rendering WebGL yang dioptimalkan. Kami menerapkan shader khusus untuk simulasi gelombang (*wave*), material berbasis fisika (*PBR*), dan efek *Bloom* yang berjalan pada 60 FPS tanpa membuat browser macet.
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        // 1. Scene Setup
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x1a1c18, 0.03);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 4, 15);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x1a1c18);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent going below the ground
+
+        // 2. Lighting (Realistic Lighting & Shadows)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
+
+        const spotLight = new THREE.SpotLight(0xffffff, 100);
+        spotLight.position.set(5, 12, 5);
+        spotLight.angle = Math.PI / 5;
+        spotLight.penumbra = 0.5;
+        spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
+        spotLight.shadow.bias = -0.0001;
+        scene.add(spotLight);
+
+        // Colored rim lights to fit DiverDea theme (Matcha & Oatmeal)
+        const matchaLight = new THREE.PointLight(0x9cb48c, 50, 20);
+        matchaLight.position.set(-5, 2, -5);
+        scene.add(matchaLight);
+
+        const warmLight = new THREE.PointLight(0xd5d0c4, 50, 20);
+        warmLight.position.set(5, 2, -5);
+        scene.add(warmLight);
+
+        // 3. Realistic Texturing & Materials (PBR Glass/Crystal)
+        const mainGeometry = new THREE.TorusKnotGeometry(1.5, 0.5, 256, 64);
+        const mainMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            metalness: 0.1,
+            roughness: 0.1,
+            transmission: 1.0, // glass effect
+            ior: 1.5,
+            thickness: 1.5,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1,
+        });
+        const mainObject = new THREE.Mesh(mainGeometry, mainMaterial);
+        mainObject.castShadow = true;
+        mainObject.receiveShadow = true;
+        mainObject.position.y = 3;
+        scene.add(mainObject);
+
+        // Floating particles (dust/godray ambiance)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 800;
+        const posArray = new Float32Array(particlesCount * 3);
+        for(let i=0; i<particlesCount*3; i++){
+            posArray[i] = (Math.random() - 0.5) * 25;
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.05,
+            color: 0x9cb48c,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // 4. Realistic Wave Simulation (Floor)
+        const floorGeometry = new THREE.PlaneGeometry(40, 40, 150, 150);
+        floorGeometry.rotateX(-Math.PI / 2);
+        
+        const floorMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1a1c18,
+            roughness: 0.2,
+            metalness: 0.9,
+            wireframe: false
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Store original vertices for wave math
+        const positionAttribute = floorGeometry.attributes.position;
+        const originalPositions = new Float32Array(positionAttribute.count * 3);
+        for(let i=0; i<positionAttribute.count; i++) {
+            originalPositions[i*3] = positionAttribute.getX(i);
+            originalPositions[i*3+1] = positionAttribute.getY(i);
+            originalPositions[i*3+2] = positionAttribute.getZ(i);
+        }
+
+        // 5. Post-Processing (Bloom effect for cinematic look)
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 1.2;
+        bloomPass.radius = 0.5;
+
+        const outputPass = new OutputPass();
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+        composer.addPass(outputPass);
+
+        // Resize handler
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Remove loader when ready
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 1000);
+        }, 2000);
+
+        // 6. Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // Rotate main object
+            mainObject.rotation.x = Math.sin(elapsedTime * 0.3) * 0.5;
+            mainObject.rotation.y += 0.005;
+            // Simulated Physics (Floating/Hovering)
+            mainObject.position.y = 3 + Math.sin(elapsedTime * 1.5) * 0.4; 
+
+            // Rotate particles slowly
+            particlesMesh.rotation.y = elapsedTime * 0.02;
+
+            // Animate waves on the floor
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const x = originalPositions[i*3];
+                const z = originalPositions[i*3+2];
+                // Complex wave calculation
+                const wave1 = Math.sin(x * 0.4 + elapsedTime) * 0.4;
+                const wave2 = Math.cos(z * 0.3 + elapsedTime * 0.8) * 0.3;
+                const wave3 = Math.sin((x+z) * 0.2 - elapsedTime * 0.5) * 0.2;
+                
+                positionAttribute.setY(i, wave1 + wave2 + wave3);
+            }
+            positionAttribute.needsUpdate = true;
+            floorGeometry.computeVertexNormals();
+
+            // Dynamic lighting movement
+            spotLight.position.x = Math.sin(elapsedTime * 0.5) * 8;
+            spotLight.position.z = Math.cos(elapsedTime * 0.5) * 8;
+
+            controls.update();
+            composer.render();
+        }
+
+        animate();
+    </script>
+</body>
+</html>

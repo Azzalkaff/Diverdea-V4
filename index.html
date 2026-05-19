@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>diverdea.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'matcha': '#9cb48c',
+                        'matcha-dark': '#1a1c18',
+                        'cream': '#fdfcf9',
+                        'oatmeal': '#d5d0c4',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.3; }
+        .bento-card { @apply rounded-[2rem] p-10 transition-all duration-500 cursor-pointer border border-transparent shadow-sm; }
+        .bento-card:hover { @apply -translate-y-2 shadow-xl border-matcha/30; }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-cream dark:bg-matcha-dark min-h-screen p-8 md:p-20 flex flex-col items-center justify-center overflow-hidden transition-colors duration-500">
+    
+    <!-- Decorative Orbs -->
+    <div class="orb w-96 h-96 bg-matcha/40 -top-20 -left-20 animate-pulse"></div>
+    <div class="orb w-80 h-80 bg-matcha/20 -bottom-20 -right-20"></div>
+
+    <header class="mb-16 text-center">
+        <h1 class="text-7xl md:text-8xl font-black tracking-tighter lowercase flex items-center gap-3">
+            diverdea<span class="w-5 h-5 bg-matcha rounded-full mt-6"></span>
+        </h1>
+        <p class="text-[10px] font-black uppercase tracking-[0.6em] opacity-30 mt-2">Intelligence Hub</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-6xl">
+        <!-- PROMPT APP (Featured) -->
+        <a href="prompt-app.html" class="bento-card col-span-1 md:col-span-2 md:row-span-2 bg-matcha text-matcha-dark flex flex-col justify-between group">
+            <span class="text-[10px] font-black uppercase tracking-[0.4em] opacity-50">Launch Engine</span>
+            <div>
+                <h2 class="text-5xl md:text-6xl font-black tracking-tighter lowercase mb-4">prompt app</h2>
+                <p class="text-sm font-medium opacity-80 leading-relaxed max-w-xs">sintesis ide lateral otomatis untuk aplikasi & game.</p>
+            </div>
+        </a>
+
+        <!-- PROMPT IMAGE -->
+        <div class="bento-card col-span-1 md:col-span-2 bg-oatmeal text-matcha-dark flex flex-col justify-between min-h-[200px]">
+            <span class="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Coming Soon</span>
+            <h2 class="text-4xl font-black tracking-tighter lowercase">prompt image</h2>
+        </div>
+
+        <!-- 3D MODEL -->
+        <a href="3d_category_showcase.html" class="bento-card col-span-1 bg-matcha-dark text-matcha flex flex-col justify-between min-h-[200px] group relative overflow-hidden">
+            <div class="absolute inset-0 bg-matcha/5 opacity-0 group-hover:opacity-100 transition-opacity z-0"></div>
+            <span class="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 relative z-10 group-hover:text-white transition-colors">Simulation</span>
+            <h2 class="text-3xl font-black tracking-tighter lowercase relative z-10 group-hover:scale-105 origin-bottom-left transition-transform duration-500 text-white">3d model</h2>
+        </a>
+
+        <!-- THEME SWITCH -->
+        <div onclick="document.documentElement.classList.toggle('dark')" class="bento-card col-span-1 bg-white dark:bg-white/5 border-oatmeal/50 dark:border-white/10 flex flex-col justify-center items-center text-center">
+            <h2 class="text-xs font-black uppercase tracking-widest opacity-60">switch theme</h2>
+        </div>
+    </div>
+
+</body>
+</html>

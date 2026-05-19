@@ -1,0 +1,88 @@
+:root {
+    --matcha: #9cb48c;
+    --matcha-dark: #1a1c18;
+    --cream: #fdfcf9;
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    letter-spacing: -0.01em; 
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { 
+    width: 8px; 
+}
+
+::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+
+::-webkit-scrollbar-thumb { 
+    background: #9cb48c44; 
+    border-radius: 20px; 
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9cb48c88;
+    background-clip: content-box;
+}
+
+/* Animations */
+.slide-up-enter-active, 
+.slide-up-leave-active { 
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); 
+}
+
+.slide-up-enter-from, 
+.slide-up-leave-to { 
+    transform: translateY(100%); 
+    opacity: 0; 
+}
+
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+/* Background Orbs */
+.orb {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Fade + Scale transition for Validator Badge */
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px);
+}
+
+/* Fade-in utility */
+.animate-fade-in {
+    animation: fadeIn 0.35s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
