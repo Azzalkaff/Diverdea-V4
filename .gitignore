@@ -1,0 +1,41 @@
+# IDE / Editor Configuration
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS-generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Package managers
+node_modules/
+jspm_packages/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and Secrets
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env.json
+
+# Build and temporary files
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.temp/
+temp/
