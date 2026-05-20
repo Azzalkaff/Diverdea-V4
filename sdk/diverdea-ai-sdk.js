@@ -9,7 +9,7 @@ class DiverDeaAIWrapper {
         this.provider = 'gemini'; // 'gemini' or 'groq'
         this.apiKey = '';
         this.models = {
-            gemini: 'gemini-3.1-flash-lite',
+            gemini: 'gemini-flash-lite-latest',
             groq: 'llama-3.1-8b-instant',
             whisper: 'whisper-large-v3'
         };
