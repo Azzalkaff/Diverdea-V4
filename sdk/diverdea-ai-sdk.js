@@ -8,8 +8,8 @@ class DiverDeaAIWrapper {
     constructor() {
         this.provider = 'gemini'; // 'gemini' or 'groq'
         this.apiKey = '';
+        this.modelName = 'gemini-3.5-flash'; // Default to the most capable model
         this.models = {
-            gemini: 'gemini-flash-lite-latest',
             groq: 'llama-3.1-8b-instant',
             whisper: 'whisper-large-v3'
         };
@@ -21,15 +21,16 @@ class DiverDeaAIWrapper {
         this.Data = new DataModule(this);
     }
 
-    init({ provider, apiKey }) {
+    init({ provider, apiKey, model }) {
         if (provider) this.provider = provider.toLowerCase();
         if (apiKey) this.apiKey = apiKey;
-        console.log(`[DiverDea SDK] Initialized with ${this.provider.toUpperCase()}`);
+        if (model) this.modelName = model; // e.g. 'gemini-3.1-flash-lite', 'gemini-3-flash-preview', 'gemini-3.5-flash'
+        console.log(`[DiverDea SDK] Initialized with ${this.provider.toUpperCase()} (Model: ${this.modelName})`);
     }
 
     async _fetchGemini(contents) {
-        if (!this.apiKey) throw new Error("API Key required.");
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.models.gemini}:generateContent?key=${this.apiKey}`, {
+        if (!this.apiKey) throw new Error("API Key required. (100% Asli input dari user)");
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${this.apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents })
