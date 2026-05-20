@@ -150,6 +150,160 @@ export const SynthesisEngine = {
                     'PRECISION TIMING: Handle audio context resumes seamlessly on first user interaction to comply with browser autoplay policies.',
                     'STATE: Serialize and save complex synth/patch parameter states into robust JSON schemas for local storage.'
                 ]
+            },
+            'Mental Health': {
+                role: 'Principal Mental Health UX & Behavioral Design Engineer',
+                directives: [
+                    'TRAUMA-INFORMED: All colors, copy, and transitions must feel safe and non-judgmental. No flashing reds or urgent patterns.',
+                    'CRISIS SAFETY (MANDATORY): Include a visible crisis helpline button (119 ext 8) reachable in ≤2 taps from any screen.',
+                    'CBT UX: Build Thought Record forms (situation→thought→feeling→response) and Guided Breathing with animated visual pacing.',
+                    'PRIVACY: Store all journal/mood data only in LocalStorage. Show a clear "Stored only on this device" badge.',
+                    'GENTLE GAMIFICATION: Use nurturing metaphors (watering a plant) instead of competitive streaks.'
+                ]
+            },
+            'News & Media': {
+                role: 'Principal Content Platform & Editorial UX Architect',
+                directives: [
+                    'READING UX: Include estimated read time, reading progress bar, and a Focus Mode that hides all chrome.',
+                    'CONTENT SCHEMA: Proper article structure (headline, lede, body, tags, date). Category filter + keyword search with highlight.',
+                    'PERSONALIZATION: Client-side preference tracker from reading history (LocalStorage) → "More Like This" tag-matching.',
+                    'PERFORMANCE: Cache 20 articles in LocalStorage for offline reading. Use skeleton loading states for all cards.'
+                ]
+            },
+            'Event & Ticketing': {
+                role: 'Principal Event Platform & Conversion Architect',
+                directives: [
+                    'BOOKING FLOW: Ticket purchase completable in ≤3 steps. Show real-time remaining seat count for urgency.',
+                    'QR TICKET: Generate unique QR per ticket (QRCode.js) with event ID + ticket ID + timestamp. Printable receipt modal.',
+                    'CALENDAR DISCOVERY: FullCalendar integration for browsing. Filter by date range, category, price.',
+                    'ORGANIZER DASHBOARD: Real-time ticket sales chart (Chart.js), attendee table, QR check-in scanner mode.'
+                ]
+            },
+            'Job & Career': {
+                role: 'Principal HR Tech & Career Platform Architect',
+                directives: [
+                    'DISCOVERY UX: Swipeable job card interface (Tinder-style). Show match score % between user skills and job requirements.',
+                    'RESUME BUILDER: WYSIWYG builder with real-time PDF preview (jsPDF). Sections: Experience, Education, Skills, Projects.',
+                    'ATS OPTIMIZER: Keyword analyzer comparing resume text vs job description, highlighting missing keywords.',
+                    'CAREER PIPELINE: Dashboard showing application stages (Applied→Screening→Interview→Offer) with response rate chart.'
+                ]
+            },
+            'Photography': {
+                role: 'Principal Visual Media & Canvas Engineer',
+                directives: [
+                    'CANVAS-FIRST: All editing runs on high-DPI Canvas (use devicePixelRatio). Fabric.js as the abstraction layer.',
+                    'FILTER PIPELINE: Non-destructive CSS+Canvas filter chain (Brightness, Contrast, Saturation, Hue, Blur). Show before/after toggle.',
+                    'PERFORMANCE: Keep canvas operations at 60fps. Use Web Worker for heavy computations. Implement undo/redo with Command pattern.',
+                    'EXPORT: Save edited image to PNG/JPEG via canvas.toDataURL() + FileSaver.js download.'
+                ]
+            },
+            'IoT & Smart Home': {
+                role: 'Principal IoT Systems & Real-Time Data Architect',
+                directives: [
+                    'REAL-TIME DASHBOARD: Simulate live sensor feed via setInterval updating Chart.js streaming charts. Widget color changes per threshold.',
+                    'DEVICE CONTROL: Toggle panel per device with clear ON/OFF visual state. Simple automation rules (if sensor > threshold → action).',
+                    'ALERT SYSTEM: Toast notification + Tone.js audio ping when sensor exceeds critical limit. Timestamped alert log.',
+                    'DATA HISTORY: Rolling 24h chart per sensor. Export sensor data as CSV via FileSaver.js.'
+                ]
+            },
+            'Marketplace': {
+                role: 'Principal C2C Marketplace & Trust Architect',
+                directives: [
+                    'TRUST SIGNALS: Seller verification badge, rating, successful transaction count prominently displayed.',
+                    'ESCROW FLOW: Simple mock escrow (Payment held → Buyer confirms receipt → Released) as a status pipeline.',
+                    'PRODUCT LISTING: Multi-photo product form. Smart filter (price range, location, condition new/used, category).',
+                    'IN-APP MESSAGING: Mock chat between buyer and seller on product page. Show "X people viewing this" urgency indicator.'
+                ]
+            },
+            'Community & Forum': {
+                role: 'Principal Community Platform & Discussion Architect',
+                directives: [
+                    'THREAD SYSTEM: Nested replies (parent → children) with pagination. Marked.js + DOMPurify for safe markdown rendering.',
+                    'VOTING: Upvote/downvote with real-time sort order change (hot/top/new). Karma/reputation points per user.',
+                    'CODE HIGHLIGHT: Prism.js for syntax highlighting in code blocks. One-click "Copy code" button.',
+                    'MODERATION: Report button with reason selection. Mod queue view for flagged content.'
+                ]
+            },
+            'Kids & Parenting': {
+                role: 'Principal Child UX & Parental Tool Designer',
+                directives: [
+                    'CHILD-SAFE UX: Touch targets ≥56px. Rounded friendly fonts (Nunito, Baloo). Pastel palette. Extremely simple language.',
+                    'PARENTAL CONTROLS: PIN-locked settings area. Session timer with gentle notification when playtime ends.',
+                    'GAMIFICATION: Stars/stickers reward system. Animate rewards with Lottie or GSAP particles. Avoid competitive mechanics.',
+                    'MILESTONE TRACKER: Baby/child milestone log with date, photo (mock), and shareable summary card.'
+                ]
+            },
+            'Language Learning': {
+                role: 'Principal Language Acquisition & EdTech Architect',
+                directives: [
+                    'SPACED REPETITION (MANDATORY): Implement simplified SM-2 algorithm to schedule card review based on recall quality (0-5 rating).',
+                    'PRONUNCIATION: Web Speech API to capture user speech vs target word. Display accuracy score visually.',
+                    'GAMIFIED STREAKS: Daily streak counter. Animate milestones (7d, 30d) with confetti. Progress chart per topic/vocabulary set.',
+                    'LESSON STRUCTURE: Vocabulary → Example sentence → Listening → Speaking → Quiz flow per lesson unit.'
+                ]
+            },
+            'AR & Spatial': {
+                role: 'Principal AR & Spatial Computing Engineer',
+                directives: [
+                    'MARKER-BASED AR: Use AR.js (Hiro marker or custom) to trigger 3D overlay. Fallback to plain camera view if WebXR unsupported.',
+                    '3D OVERLAY: Three.js for 3D objects rendered above camera feed. Smooth marker tracking. Simple hit-testing.',
+                    'PERFORMANCE: Limit polygon count (<5k). Delta-time movement. FPS counter in corner. Warn if device too slow.',
+                    'UX ONBOARDING: Clear permission request for camera access. Visual guide showing how to point at marker.'
+                ]
+            },
+            'Cybersecurity': {
+                role: 'Principal Security Engineering & Privacy Architect',
+                directives: [
+                    'ZERO PLAINTEXT: Never store passwords or sensitive data as plaintext. Use CryptoJS (AES-256 encrypt, SHA-256 hash).',
+                    'PASSWORD STRENGTH: Zxcvbn for real-time strength analysis. Show Weak/Fair/Strong/Very Strong meter with specific feedback.',
+                    'SECURITY DASHBOARD: Overall security score, list of identified weaknesses, and actionable remediation steps.',
+                    'VAULT UX: Encrypted local password vault with category organization, copy-to-clipboard (auto-clear after 30s), and search.'
+                ]
+            },
+            'Entertainment': {
+                role: 'Principal Entertainment Platform & Content UX Architect',
+                directives: [
+                    'CATALOG UX: Netflix-style content grid with hover preview card. Infinite scroll with virtualized list for large catalogs.',
+                    'WATCHLIST: Track status (Not Started/Watching/Completed) + episode progress in LocalStorage. "Continue Watching" row on home.',
+                    'RECOMMENDATIONS: Genre/tag-based recommendation from watch history. Show "Because you watched X" section.',
+                    'RATINGS: 5-star rating system with review text. Sort catalog by rating, date, popularity.'
+                ]
+            },
+            'Personal Finance': {
+                role: 'Principal Personal Finance & Budget UX Architect',
+                directives: [
+                    'ZERO-ERROR MATH: Use integer cents internally (never floats). Display with Intl.NumberFormat for currency formatting.',
+                    'BUDGET VISUALIZATION: Real-time pie chart (Chart.js) of spending per category, updating as transactions are added.',
+                    'SAVINGS GOALS: Goal with progress bar, projected completion date based on average savings rate, milestone celebrations.',
+                    'TRANSACTION LOG: Sortable/filterable transaction table with category tags, date range filter, and CSV export.'
+                ]
+            },
+            'Fashion & Beauty': {
+                role: 'Principal Fashion & Lifestyle Visual Architect',
+                directives: [
+                    'VISUAL PRIMACY: Consistent image aspect ratios (1:1 product, 4:5 outfit). Tap-to-zoom and swipe gallery.',
+                    'OUTFIT PLANNER: Virtual closet with drag-and-drop outfit combining. Save favorite outfit combinations.',
+                    'TREND BOARD: Masonry layout mood board. Tag/label system (Casual, Formal, Streetwear) for quick filtering.',
+                    'WISHLIST: Save items with price tracking. Notify (toast) when a wishlisted item goes on sale (mock).'
+                ]
+            },
+            'Volunteer & NGO': {
+                role: 'Principal Social Impact & Community Engagement Architect',
+                directives: [
+                    'IMPACT TRANSPARENCY: Animated counters for people helped, volunteer hours, donations collected.',
+                    'VOLUNTEER MATCHING: Match volunteers to activities by skill, location (Leaflet map), and schedule availability.',
+                    'DONATION TRACKING: Progress bar per campaign with milestone notifications (25/50/75/100%). Transparent fund breakdown.',
+                    'IMPACT REPORT: Shareable impact card with campaign stats, auto-generated from LocalStorage data.'
+                ]
+            },
+            'E-Government': {
+                role: 'Principal E-Government & Civic Service Architect',
+                directives: [
+                    'ACCESSIBILITY (MANDATORY): Contrast ratio ≥4.5:1, min font 16px, full keyboard navigation, comprehensive ARIA labels.',
+                    'FORM DIGITIZATION: Multi-step form with real-time validation, auto-save, document upload (mock + image compression). PDF output via jsPDF.',
+                    'STATUS TRACKING: Request pipeline (Submitted→Verified→Processing→Complete) with status notifications and ETA.',
+                    'TRANSPARENCY: Public data dashboard (budget allocation, service metrics) with accessible Chart.js visualizations.'
+                ]
             }
         };
 
@@ -175,7 +329,24 @@ export const SynthesisEngine = {
             'Creative': 'Canvas API / Paper.js + Vanilla JS (For low-latency drawing & DOM manipulation)',
             'Game 3D': 'Babylon.js (3D Engine via CDN) + Havok Physics + Vanilla JS',
             'Green-Tech': 'Vue.js 3 + Tailwind CSS (Optimized for data-heavy visualizations)',
-            'Music': 'Web Audio API / Tone.js Context + Vanilla JS (For precise audio scheduling)'
+            'Music': 'Web Audio API / Tone.js Context + Vanilla JS (For precise audio scheduling)',
+            'Mental Health': 'Vue.js 3 + Tailwind CSS + Tone.js (ambient) + Chart.js',
+            'News & Media': 'Vue.js 3 + Tailwind CSS + Marked.js (Markdown rendering)',
+            'Event & Ticketing': 'Vue.js 3 + Tailwind CSS + FullCalendar + QRCode.js',
+            'Job & Career': 'Vue.js 3 + Tailwind CSS + Chart.js + jsPDF',
+            'Photography': 'Fabric.js (Canvas) + Vanilla JS (For zero-latency pixel operations)',
+            'IoT & Smart Home': 'Vue.js 3 + Tailwind CSS + Chart.js (streaming) + Tone.js',
+            'Marketplace': 'Vue.js 3 + Tailwind CSS + Swiper.js + PhotoSwipe',
+            'Community & Forum': 'Vue.js 3 + Tailwind CSS + Marked.js + DOMPurify + Prism.js',
+            'Kids & Parenting': 'Vue.js 3 + Tailwind CSS + Howler.js + Lottie (CDN)',
+            'Language Learning': 'Vue.js 3 + Tailwind CSS + Howler.js + Web Speech API',
+            'AR & Spatial': 'Three.js + AR.js (Marker-based AR via CDN) + Vanilla JS',
+            'Cybersecurity': 'Vue.js 3 + Tailwind CSS + CryptoJS + Zxcvbn (CDN)',
+            'Entertainment': 'Vue.js 3 + Tailwind CSS + Swiper.js + Plyr.js',
+            'Personal Finance': 'Vue.js 3 + Tailwind CSS + Chart.js + Intl.NumberFormat (Native)',
+            'Fashion & Beauty': 'Vue.js 3 + Tailwind CSS + Swiper.js + Masonry.js',
+            'Volunteer & NGO': 'Vue.js 3 + Tailwind CSS + Leaflet.js + Chart.js',
+            'E-Government': 'Vue.js 3 + Tailwind CSS + jsPDF + QRCode.js',
         };
         const coreEngine = engineMap[source.category] || 'Vue.js 3 (Composition API) & Tailwind CSS';
         
@@ -437,6 +608,142 @@ ${profile.responseSections.includes('rationale') ? '1. **Executive Rationale:** 
                     'PRECISION TIMING: Handle audio context resumes seamlessly on first user interaction to comply with browser autoplay policies.',
                     'STATE: Serialize and save complex synth/patch parameter states into robust JSON schemas for local storage.'
                 ]
+            },
+            'Mental Health': {
+                role: 'Principal Mental Health UX & Behavioral Design Engineer',
+                directives: [
+                    'TRAUMA-INFORMED DESIGN: All UI elements must feel safe and non-judgmental. No alarming colors. Soft transitions, affirming micro-copy.',
+                    'CRISIS INFRASTRUCTURE: Hotline access in ≤2 taps always. Implement mood-triggered check-in prompts for distress entries.',
+                    'CBT FEATURES: Thought Record journals, mood trend visualization, guided breathing with animated pacing timer.'
+                ]
+            },
+            'News & Media': {
+                role: 'Principal Content Platform & Editorial UX Architect',
+                directives: [
+                    'READING EXPERIENCE: Focus Mode, reading progress bar, estimated read time, serif font toggle, adaptive line-height.',
+                    'CONTENT ENGINE: Full-text search, category filtering, tag-based personalization, bookmarking, and offline cache (IndexedDB).',
+                    'ENGAGEMENT: Reading streak, saved articles list, share-to-clipboard with rich preview text.'
+                ]
+            },
+            'Event & Ticketing': {
+                role: 'Principal Event Platform & Conversion Architect',
+                directives: [
+                    'BOOKING CONVERSION: ≤3-step purchase flow. Real-time seat inventory. Urgency indicators.',
+                    'QR INFRASTRUCTURE: Unique QR generation per ticket. Validator scanner mode with camera. Printable PDF receipts.',
+                    'ORGANIZER TOOLS: Sales analytics dashboard, attendee CRM, check-in management.'
+                ]
+            },
+            'Job & Career': {
+                role: 'Principal HR Tech & Career Platform Architect',
+                directives: [
+                    'DISCOVERY: Tinder-style job card swipe, skill-match scoring, saved search alerts.',
+                    'BUILDER TOOLS: WYSIWYG resume builder (jsPDF export), ATS keyword gap analyzer, portfolio showcase.',
+                    'CAREER TRACKING: Application pipeline (Applied→Offer), interview scheduler, salary negotiation tracker.'
+                ]
+            },
+            'Photography': {
+                role: 'Principal Visual Media & Canvas Engineer',
+                directives: [
+                    'CANVAS ARCHITECTURE: High-DPI Canvas (devicePixelRatio aware), Fabric.js layer system, non-destructive editing history.',
+                    'FILTER ENGINE: Real-time CSS+WebGL filter pipeline. Before/after compare slider. Custom filter preset save/load.',
+                    'EXPORT & SHARE: Multiple format export (PNG/JPEG/WebP). Watermark overlay option. Social share crop presets.'
+                ]
+            },
+            'IoT & Smart Home': {
+                role: 'Principal IoT Systems & Real-Time Data Architect',
+                directives: [
+                    'REAL-TIME DATA: WebSocket or SSE streaming for live sensor data. Chart.js streaming charts with configurable time windows.',
+                    'AUTOMATION ENGINE: Rule builder UI (if sensor X > threshold Y → action Z). Schedule-based automation (cron-style).',
+                    'ALERTS & HISTORY: Push notification simulation, alert log with severity levels, 30-day data export.'
+                ]
+            },
+            'Marketplace': {
+                role: 'Principal C2C Marketplace & Trust Systems Architect',
+                directives: [
+                    'TRUST LAYER: Verified seller badges, review system, escrow payment flow simulation, dispute resolution UI.',
+                    'DISCOVERY ENGINE: Semantic search, faceted filters, geolocation-based listings (Leaflet), saved searches.',
+                    'SELLER TOOLS: Inventory management, promotion/discount system, order fulfillment pipeline, earnings dashboard.'
+                ]
+            },
+            'Community & Forum': {
+                role: 'Principal Community Platform & Discussion Architect',
+                directives: [
+                    'THREAD SYSTEM: Nested comment trees, markdown rendering (Marked.js + DOMPurify), code syntax highlight (Prism.js).',
+                    'GOVERNANCE: Voting system, mod queue, user reputation, content flagging, community rules enforcement.',
+                    'ENGAGEMENT: Notification system, mention @user, award/badge system, hot-trending algorithm.'
+                ]
+            },
+            'Kids & Parenting': {
+                role: 'Principal Child UX & Family App Architect',
+                directives: [
+                    'CHILD-SAFE DESIGN: Large touch targets (≥56px), friendly rounded fonts, parental PIN lock, session time limits.',
+                    'LEARNING ENGAGEMENT: Star/sticker reward economy, progress celebration animations, adaptive difficulty.',
+                    'PARENT DASHBOARD: Usage analytics, content controls, milestone tracking, family sharing features.'
+                ]
+            },
+            'Language Learning': {
+                role: 'Principal Language Acquisition & Adaptive Learning Architect',
+                directives: [
+                    'SRS ENGINE (MANDATORY): Full SM-2 spaced repetition algorithm with per-card recall history and next-review scheduling.',
+                    'MULTIMODAL INPUT: Web Speech API pronunciation scoring, listening comprehension with Howler.js audio.',
+                    'CURRICULUM SYSTEM: Lesson units with Vocabulary→Grammar→Listening→Speaking→Quiz flow. CEFR level tracking.'
+                ]
+            },
+            'AR & Spatial': {
+                role: 'Principal AR & Spatial Computing Engineer',
+                directives: [
+                    'AR INFRASTRUCTURE: AR.js marker tracking + Three.js 3D overlay. WebXR Device API for modern headset support.',
+                    'SPATIAL UX: Hit-testing for object placement, scale/rotate handles, depth occlusion simulation.',
+                    'PERFORMANCE: Strict 60fps budget. LOD system for 3D assets. Graceful degradation to 2D fallback.'
+                ]
+            },
+            'Cybersecurity': {
+                role: 'Principal Security Engineering & Zero-Trust Architect',
+                directives: [
+                    'ZERO TRUST: AES-256 encryption for all stored data (CryptoJS). SHA-256 password hashing. PBKDF2 key derivation.',
+                    'SECURITY TOOLING: Password strength (Zxcvbn), breach check simulation, 2FA TOTP generator, security audit scoring.',
+                    'VAULT ARCHITECTURE: Encrypted credential store, auto-lock timeout, clipboard auto-clear, export with master password.'
+                ]
+            },
+            'Entertainment': {
+                role: 'Principal Entertainment Platform & Recommendation Engineer',
+                directives: [
+                    'CATALOG ARCHITECTURE: Indexed content database, genre taxonomy, multi-platform tracking (movies/shows/anime/games).',
+                    'RECOMMENDATION ENGINE: Collaborative filtering simulation, genre/tag affinity scoring, "Because you watched" explanations.',
+                    'SOCIAL FEATURES: Watchlist sharing, activity feed, community reviews, watch party scheduling.'
+                ]
+            },
+            'Personal Finance': {
+                role: 'Principal Personal Finance & Behavioral Economics Architect',
+                directives: [
+                    'PRECISION MATH: Integer-cent arithmetic throughout. Intl.NumberFormat for all display. No floating-point budget math.',
+                    'BEHAVIORAL NUDGES: Spending alerts, goal progress notifications, weekly summary digest, envelope budgeting method.',
+                    'ANALYTICS DEPTH: Income vs expense trend, category heatmap, net worth tracker, future projection modeling.'
+                ]
+            },
+            'Fashion & Beauty': {
+                role: 'Principal Fashion & Consumer Lifestyle Architect',
+                directives: [
+                    'VISUAL SYSTEM: Image-first design, consistent aspect ratios, high-quality zoom, virtual try-on simulation (CSS overlay).',
+                    'OUTFIT INTELLIGENCE: Closet management, outfit combination engine, occasion-based suggestions, style DNA profile.',
+                    'COMMUNITY & TRENDS: User style feed, trending looks algorithm, brand collaboration tools, lookbook creation.'
+                ]
+            },
+            'Volunteer & NGO': {
+                role: 'Principal Social Impact & Civic Tech Architect',
+                directives: [
+                    'IMPACT DASHBOARD: Real-time counter animations, campaign metrics, transparent fund allocation breakdowns.',
+                    'MATCHING SYSTEM: Skill-based volunteer matching, geolocation (Leaflet), availability calendar, automated notifications.',
+                    'TRUST & COMPLIANCE: Donation receipt generation (jsPDF), audit trail, beneficiary reporting, NGO verification badges.'
+                ]
+            },
+            'E-Government': {
+                role: 'Principal E-Government & Civic Service Architect',
+                directives: [
+                    'ACCESSIBILITY FIRST: WCAG AA compliance mandatory. Full keyboard nav, screen reader support, 4.5:1 contrast ratio.',
+                    'SERVICE DIGITIZATION: Multi-step form wizard with auto-save, document upload + compression, official PDF generation.',
+                    'TRANSPARENCY: Public data portal with interactive charts (budget, performance KPIs), status tracking API simulation.'
+                ]
             }
         };
 
@@ -462,7 +769,24 @@ ${profile.responseSections.includes('rationale') ? '1. **Executive Rationale:** 
             'Creative': 'Vite + React + Zustand + Canvas API/Fabric.js',
             'Game 3D': 'Vite + React + React Three Fiber (R3F) / Babylon.js',
             'Green-Tech': 'Next.js + Tailwind CSS + Recharts',
-            'Music': 'Vite + React + Tailwind CSS + Tone.js + Zustand'
+            'Music': 'Vite + React + Tailwind CSS + Tone.js + Zustand',
+            'Mental Health': 'Next.js (App Router) + Tailwind CSS + Zustand + Framer Motion',
+            'News & Media': 'Next.js (App Router) + Tailwind CSS + TanStack Query',
+            'Event & Ticketing': 'Next.js (App Router) + Tailwind CSS + Zustand + FullCalendar',
+            'Job & Career': 'Next.js (App Router) + Tailwind CSS + Zustand + React-PDF',
+            'Photography': 'Vite + React + Fabric.js + Zustand',
+            'IoT & Smart Home': 'Vite + React + Tailwind CSS + Socket.io (Architecture) + Recharts',
+            'Marketplace': 'Next.js (App Router) + Tailwind CSS + Zustand + Supabase (Architecture)',
+            'Community & Forum': 'Next.js (App Router) + Tailwind CSS + TanStack Query + Supabase (Architecture)',
+            'Kids & Parenting': 'Next.js (App Router) + Tailwind CSS + Zustand + Framer Motion',
+            'Language Learning': 'Vite + React + Tailwind CSS + Zustand + Howler.js',
+            'AR & Spatial': 'Vite + React + React Three Fiber + AR.js',
+            'Cybersecurity': 'Vite + React + Tailwind CSS + Zustand + CryptoJS',
+            'Entertainment': 'Next.js (App Router) + Tailwind CSS + TanStack Query + Zustand',
+            'Personal Finance': 'Next.js (App Router) + Tailwind CSS + Zustand + Recharts',
+            'Fashion & Beauty': 'Next.js (App Router) + Tailwind CSS + Zustand + Framer Motion',
+            'Volunteer & NGO': 'Next.js (App Router) + Tailwind CSS + Zustand + Leaflet',
+            'E-Government': 'Next.js (App Router) + Tailwind CSS + Zustand + React-PDF',
         };
         const coreMasterEngine = masterEngineMap[source.category] || 'Next.js (App Router) + Tailwind CSS + Zustand';
 

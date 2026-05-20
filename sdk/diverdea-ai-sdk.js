@@ -8,7 +8,7 @@ class DiverDeaAIWrapper {
     constructor() {
         this.provider = 'gemini'; // 'gemini' or 'groq'
         this.apiKey = '';
-        this.modelName = 'gemini-3.5-flash'; // Default to the most capable model
+        this.modelName = 'gemini-3.1-flash-lite'; // Default to the most capable model
         this.models = {
             groq: 'llama-3.1-8b-instant',
             whisper: 'whisper-large-v3'

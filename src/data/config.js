@@ -1,4 +1,85 @@
-export const categories = ['Productivity', 'Game 2D', 'Social', 'Fintech', 'Health', 'Education', 'E-commerce', 'Utility', 'Services', 'Creative', 'Game 3D', 'Green-Tech', 'Music', 'AI & Data', 'Astrology', 'Travel & Maps', 'Lifestyle', 'Food & Recipe', 'Web3 & Crypto', 'Real Estate', 'Sports & Fitness', 'Pets & Animals', 'Romance & Dating', 'Agri & Nelayan', 'Warung & UMKM', 'Transport & Ojol', 'Religi & Amal', 'Warga & RT/RW', '3d model', 'Otomotif & Bengkel', 'Seni & Budaya', 'Hukum & Advokasi', 'Politik & Kebijakan'];
+export const categories = ['Productivity', 'Game 2D', 'Social', 'Fintech', 'Health', 'Education', 'E-commerce', 'Utility', 'Services', 'Creative', 'Game 3D', 'Green-Tech', 'Music', 'AI & Data', 'Astrology', 'Travel & Maps', 'Lifestyle', 'Food & Recipe', 'Web3 & Crypto', 'Real Estate', 'Sports & Fitness', 'Pets & Animals', 'Romance & Dating', 'Agri & Nelayan', 'Warung & UMKM', 'Transport & Ojol', 'Religi & Amal', 'Warga & RT/RW', '3d model', 'Otomotif & Bengkel', 'Seni & Budaya', 'Hukum & Advokasi', 'Politik & Kebijakan', 'Mental Health', 'News & Media', 'Event & Ticketing', 'Job & Career', 'Photography', 'IoT & Smart Home', 'Marketplace', 'Community & Forum', 'Kids & Parenting', 'Language Learning', 'AR & Spatial', 'Cybersecurity', 'Entertainment', 'Personal Finance', 'Fashion & Beauty', 'Volunteer & NGO', 'E-Government'];
+
+/**
+ * categoryGroups — Two-level taxonomy for low-cognitive-load category selection.
+ * Follows Miller's Law: 9 top-level groups, each with ≤7 subcategories.
+ * Ordered by frequency of appearance in hackathons & student projects.
+ */
+export const categoryGroups = [
+    {
+        id: 'tech',
+        label: 'Tech & Tools',
+        icon: 'fa-microchip',
+        color: '#22D3EE',
+        description: 'Developer tools, AI, security & emerging tech',
+        items: ['Productivity', 'Utility', 'AI & Data', 'Cybersecurity', 'IoT & Smart Home', 'AR & Spatial', '3d model']
+    },
+    {
+        id: 'games',
+        label: 'Games & XR',
+        icon: 'fa-gamepad',
+        color: '#A855F7',
+        description: 'Games, interactive experiences & spatial computing',
+        items: ['Game 2D', 'Game 3D', 'AR & Spatial', 'Creative']
+    },
+    {
+        id: 'finance',
+        label: 'Finance & Commerce',
+        icon: 'fa-wallet',
+        color: '#10B981',
+        description: 'Fintech, e-commerce, marketplace & personal budgeting',
+        items: ['Fintech', 'E-commerce', 'Marketplace', 'Personal Finance', 'Warung & UMKM', 'Web3 & Crypto']
+    },
+    {
+        id: 'social',
+        label: 'Social & Community',
+        icon: 'fa-users',
+        color: '#F59E0B',
+        description: 'Social networks, forums, dating & civic tools',
+        items: ['Social', 'Community & Forum', 'Romance & Dating', 'Volunteer & NGO', 'Warga & RT/RW', 'E-Government']
+    },
+    {
+        id: 'education',
+        label: 'Education & Growth',
+        icon: 'fa-graduation-cap',
+        color: '#3B82F6',
+        description: 'Learning, language, career & children\'s apps',
+        items: ['Education', 'Language Learning', 'Kids & Parenting', 'Job & Career', 'Sports & Fitness']
+    },
+    {
+        id: 'health',
+        label: 'Health & Lifestyle',
+        icon: 'fa-heart-pulse',
+        color: '#EC4899',
+        description: 'Healthcare, mental wellness, food & lifestyle',
+        items: ['Health', 'Mental Health', 'Food & Recipe', 'Lifestyle', 'Fashion & Beauty', 'Pets & Animals']
+    },
+    {
+        id: 'creative',
+        label: 'Creative & Media',
+        icon: 'fa-wand-magic-sparkles',
+        color: '#F472B6',
+        description: 'Art, music, photography, news & entertainment',
+        items: ['Creative', 'Music', 'Photography', 'Entertainment', 'News & Media', 'Seni & Budaya', 'Astrology']
+    },
+    {
+        id: 'realworld',
+        label: 'Real World & Services',
+        icon: 'fa-location-dot',
+        color: '#34D399',
+        description: 'Maps, travel, real estate, events & on-demand services',
+        items: ['Services', 'Travel & Maps', 'Real Estate', 'Event & Ticketing', 'Green-Tech', 'Transport & Ojol']
+    },
+    {
+        id: 'lokal',
+        label: 'Lokal Indonesia',
+        icon: 'fa-flag',
+        color: '#EF4444',
+        description: 'Kategori khusus pasar & konteks lokal Indonesia',
+        items: ['Agri & Nelayan', 'Warung & UMKM', 'Transport & Ojol', 'Religi & Amal', 'Otomotif & Bengkel', 'Hukum & Advokasi', 'Politik & Kebijakan']
+    },
+];
+
 
 export const libStacks = {
     'Game 2D': 'Phaser.js, Tone.js, GSAP',
@@ -33,7 +114,24 @@ export const libStacks = {
     'Otomotif & Bengkel': 'Leaflet.js, FullCalendar, GSAP',
     'Seni & Budaya': 'A-Frame (VR/AR), Three.js, GSAP',
     'Hukum & Advokasi': 'Highlight.js, PDF.js, Quill (Editor)',
-    'Politik & Kebijakan': 'Chart.js, D3.js, Leaflet.js'
+    'Politik & Kebijakan': 'Chart.js, D3.js, Leaflet.js',
+    'Mental Health': 'Tone.js (ambient), GSAP, Chart.js (mood graphs), Lucide Icons',
+    'News & Media': 'Marked.js (Markdown), DOMPurify, Swiper.js, Lucide Icons',
+    'Event & Ticketing': 'FullCalendar, QRCode.js, Day.js, Lucide Icons',
+    'Job & Career': 'Quill (Rich Text Editor), Chart.js, Day.js, Lucide Icons',
+    'Photography': 'Fabric.js (Canvas editing), Cropper.js, FileSaver.js, Lucide Icons',
+    'IoT & Smart Home': 'Chart.js (real-time), GSAP, Tone.js (alerts), Lucide Icons',
+    'Marketplace': 'Swiper.js, PhotoSwipe, Intl.NumberFormat (Native), Lucide Icons',
+    'Community & Forum': 'Marked.js, DOMPurify, Prism.js (syntax highlight), Lucide Icons',
+    'Kids & Parenting': 'Howler.js (audio), GSAP, Canvas API, Lottie (Animations via CDN)',
+    'Language Learning': 'Howler.js (pronunciation), GSAP, Chart.js (progress), Lucide Icons',
+    'AR & Spatial': 'Three.js (3D overlay), AR.js (marker-based AR), GSAP, Lucide Icons',
+    'Cybersecurity': 'CryptoJS (hashing/encrypt), Zxcvbn (password strength), Chart.js, Lucide Icons',
+    'Entertainment': 'Swiper.js, Plyr.js (video player), GSAP, Lucide Icons',
+    'Personal Finance': 'Chart.js, Intl.NumberFormat (Native), Day.js, Lucide Icons',
+    'Fashion & Beauty': 'Swiper.js, PhotoSwipe, Masonry.js, Lucide Icons',
+    'Volunteer & NGO': 'Leaflet.js (Maps), Chart.js (impact), Day.js, Lucide Icons',
+    'E-Government': 'jsPDF (PDF export), QRCode.js, Chart.js, Lucide Icons',
 };
 
 export const categoryPalettes = {
@@ -69,7 +167,24 @@ export const categoryPalettes = {
     'Otomotif & Bengkel':{ hero: '#EA580C', neutral: '#1C1917', accent: '#EAB308', label: 'Chrome & Oil' },
     'Seni & Budaya':    { hero: '#9D174D', neutral: '#FAF5FF', accent: '#D97706', label: 'Batik Classic' },
     'Hukum & Advokasi': { hero: '#0F172A', neutral: '#F8FAFC', accent: '#3B82F6', label: 'Justice Scale' },
-    'Politik & Kebijakan':{ hero: '#B91C1C', neutral: '#FDF8F6', accent: '#4338CA', label: 'National Flag' }
+    'Politik & Kebijakan':{ hero: '#B91C1C', neutral: '#FDF8F6', accent: '#4338CA', label: 'National Flag' },
+    'Mental Health':      { hero: '#7C3AED', neutral: '#1E1B2E', accent: '#34D399', label: 'Calm Violet' },
+    'News & Media':       { hero: '#18181B', neutral: '#F8FAFC', accent: '#EF4444', label: 'Press Black' },
+    'Event & Ticketing':  { hero: '#9D2449', neutral: '#1C0811', accent: '#FB923C', label: 'Stage Glow' },
+    'Job & Career':       { hero: '#1D4ED8', neutral: '#0F172A', accent: '#22D3EE', label: 'Career Blue' },
+    'Photography':        { hero: '#18181B', neutral: '#09090B', accent: '#F59E0B', label: 'Dark Frame' },
+    'IoT & Smart Home':   { hero: '#0891B2', neutral: '#083344', accent: '#67E8F9', label: 'Cyber Teal' },
+    'Marketplace':        { hero: '#16A34A', neutral: '#052E16', accent: '#FCD34D', label: 'Market Fresh' },
+    'Community & Forum':  { hero: '#FF4500', neutral: '#1A1A1B', accent: '#FF6534', label: 'Forum Fire' },
+    'Kids & Parenting':   { hero: '#F59E0B', neutral: '#FFFBEB', accent: '#EC4899', label: 'Playful Sun' },
+    'Language Learning':  { hero: '#059669', neutral: '#022C22', accent: '#6EE7B7', label: 'Lingua Green' },
+    'AR & Spatial':       { hero: '#8B5CF6', neutral: '#0C0A1E', accent: '#06B6D4', label: 'Hologram Violet' },
+    'Cybersecurity':      { hero: '#10B981', neutral: '#0A0F0D', accent: '#F43F5E', label: 'Matrix Green' },
+    'Entertainment':      { hero: '#E11D48', neutral: '#0F0A13', accent: '#A855F7', label: 'Screen Red' },
+    'Personal Finance':   { hero: '#0284C7', neutral: '#0C4A6E', accent: '#34D399', label: 'Budget Clear' },
+    'Fashion & Beauty':   { hero: '#EC4899', neutral: '#1F0A16', accent: '#F9A8D4', label: 'Haute Rose' },
+    'Volunteer & NGO':    { hero: '#16A34A', neutral: '#F0FDF4', accent: '#FBBF24', label: 'Impact Green' },
+    'E-Government':       { hero: '#1E3A8A', neutral: '#EFF6FF', accent: '#DC2626', label: 'Garuda Blue' },
 };
 
 export const colorHarmonies = [
@@ -158,5 +273,22 @@ export const categoryFocusMap = {
     'Otomotif & Bengkel': '- **FOKUS UTILITAS:** Tampilan harus jelas dan terbaca di bawah sinar matahari (high contrast). Gunakan ikon suku cadang dan mobil yang familiar.',
     'Seni & Budaya': '- **ESTETIKA TRADISIONAL MODERN:** Gunakan ornamen motif lokal sebagai aksen, dengan tipografi yang elegan. Harus terasa seperti galeri seni.',
     'Hukum & Advokasi': '- **PROFESIONAL & TERPERCAYA:** Desain harus bersih, minimalis, dan sangat aman. Gunakan warna navy atau abu-abu untuk memberi kesan serius dan rahasia.',
-    'Politik & Kebijakan': '- **DATA DRIVEN:** Harus menyajikan data polling atau anggaran dengan chart yang sangat interaktif dan mudah dipahami oleh masyarakat awam.'
+    'Politik & Kebijakan': '- **DATA DRIVEN:** Harus menyajikan data polling atau anggaran dengan chart yang sangat interaktif dan mudah dipahami oleh masyarakat awam.',
+    'Mental Health': '- **TRAUMA-INFORMED DESIGN:** Setiap interaksi harus terasa aman dan non-judgmental. Hindari warna merah mencolok dan pola "urgent". Gunakan transisi halus dan micro-copy yang affirming.\n\n- **CRISIS SAFETY (MANDATORY):** Selalu sertakan tombol akses cepat ke hotline (contoh: 119 ext 8) yang dapat dijangkau dalam ≤ 2 tap dari layar mana pun.\n\n- **CBT-INFORMED UX:** Bangun fitur berdasarkan teknik berbasis bukti: Thought Record (situasi → pikiran → perasaan → respons), Mood Journal dengan visualisasi tren, dan Guided Breathing dengan animasi visual.\n\n- **DATA PRIVACY:** Semua data jurnal/mood HARUS tersimpan lokal (LocalStorage/IndexedDB). Tampilkan indikator privasi yang jelas.',
+    'News & Media': '- **READING UX:** Optimalkan untuk membaca artikel panjang: pilihan font serif, estimated read time, dan reading progress indicator. Implementasikan "Focus Mode" yang menyembunyikan semua UI chrome.\n\n- **CONTENT ARCHITECTURE:** Bangun skema artikel yang proper (headline, lede, body, tags, tanggal). Implementasikan filter berbasis kategori dan pencarian dengan keyword highlighting.\n\n- **PERSONALIZATION:** Bangun preference tracker sederhana berbasis riwayat baca (LocalStorage) untuk memunculkan rekomendasi "More Like This" via tag-matching.\n\n- **OFFLINE SUPPORT:** Cache 20 artikel terakhir di LocalStorage untuk dibaca offline. Gunakan skeleton loading state untuk setiap card.',
+    'Event & Ticketing': '- **BOOKING FLOW:** Proses pembelian tiket harus selesai dalam ≤ 3 langkah. Tampilkan jumlah kursi tersisa secara real-time untuk menciptakan urgensi.\n\n- **QR TICKET:** Gunakan QRCode.js untuk menghasilkan QR unik per tiket berisi event ID + ticket ID + timestamp. Tampilkan receipt modal yang bisa di-print dengan QR dan detail acara.\n\n- **ORGANIZER DASHBOARD:** Buat tampilan organizer dengan grafik penjualan tiket real-time (Chart.js), tabel peserta, dan mode Check-in Scanner menggunakan kamera perangkat + validasi QR.',
+    'Job & Career': '- **JOB DISCOVERY UX:** Bangun antarmuka swipeable job card (Tinder-style) sebagai layer discovery. Implementasikan "Quick Apply" dengan template profil yang pre-filled.\n\n- **RESUME BUILDER:** Buat WYSIWYG resume builder dengan template bersih dan real-time PDF preview. Export ke PDF menggunakan jsPDF. Support section: Pengalaman, Pendidikan, Skill, Proyek.\n\n- **ATS OPTIMIZER:** Bangun keyword analyzer yang membandingkan teks resume dengan deskripsi pekerjaan, menyoroti kata kunci yang hilang.\n\n- **CAREER PIPELINE:** Dashboard yang menampilkan pipeline lamaran (Applied → Screening → Interview → Offer) dengan chart response rate.',
+    'Photography': '- **CANVAS-FIRST ARCHITECTURE:** Semua operasi editing HARUS berjalan di HTML5 Canvas resolusi tinggi (gunakan devicePixelRatio). Fabric.js adalah layer abstraksi yang direkomendasikan.\n\n- **FILTER PIPELINE:** Implementasikan CSS + Canvas filter pipeline yang non-destructive. Rantai filter: Brightness, Contrast, Saturation, Hue-Rotate, Blur, Sharpen. Tampilkan before/after toggle.\n\n- **PERFORMANCE:** Operasi canvas harus tetap di 60fps. Gunakan OffscreenCanvas atau Web Worker untuk operasi berat. Implement undo/redo stack dengan command pattern.',
+    'IoT & Smart Home': '- **REAL-TIME DASHBOARD:** Simulasikan WebSocket feed (setInterval) untuk memperbarui grafik sensor secara live (Chart.js streaming). Warna widget berubah berdasarkan threshold (hijau/kuning/merah).\n\n- **DEVICE CONTROL:** Bangun toggle panel untuk setiap perangkat dengan status visual yang jelas (ON/OFF, aktif/tidak aktif). Implementasikan aturan otomasi sederhana (if X > threshold → trigger Y).\n\n- **ALERT SYSTEM:** Kirim toast notification + sinyal audio (Tone.js) ketika sensor melampaui batas kritis. Tampilkan log alert dengan timestamp.',
+    'Marketplace': '- **TRUST & SAFETY:** Tampilkan badge verifikasi penjual, rating, dan jumlah transaksi berhasil secara prominan. Implementasikan sistem escrow sederhana (Uang ditahan → Konfirmasi penerima → Cair).\n\n- **PRODUCT LISTING:** Bangun form upload produk multi-foto (mock). Implementasikan filter cerdas (harga, lokasi, kondisi baru/bekas, kategori).\n\n- **MESSAGING:** Integrasi mock chat antara pembeli dan penjual di dalam halaman produk. Tampilkan "Sedang dilihat oleh X orang" untuk urgency.',
+    'Community & Forum': '- **THREAD ARCHITECTURE:** Bangun sistem thread bersarang (parent reply → child replies) dengan pagination. Gunakan Marked.js + DOMPurify untuk rendering markdown yang aman di body post.\n\n- **VOTING SYSTEM:** Implementasikan upvote/downvote dengan perubahan sort order real-time (hot/top/new). Tampilkan karma/reputasi poin per user.\n\n- **CODE HIGHLIGHT:** Gunakan Prism.js untuk syntax highlighting di code block. Implementasikan tombol "Copy code" satu klik.',
+    'Kids & Parenting': '- **AGE-APPROPRIATE UX:** Gunakan target sentuh ≥ 56px (lebih besar dari standar), font bulat dan ramah (Nunito, Baloo), warna cerah pastel, dan bahasa yang sangat sederhana.\n\n- **PARENTAL CONTROLS:** Bangun PIN lock untuk area pengaturan orang tua. Implementasikan timer sesi dengan notifikasi lembut saat waktu belajar/bermain habis.\n\n- **GAMIFICATION ANAK:** Gunakan sistem bintang/stiker sebagai reward. Animasikan reward dengan Lottie atau GSAP particles. Hindari mekanisme kompetitif antar anak.',
+    'Language Learning': '- **SPACED REPETITION (MANDATORY):** Implementasikan algoritma SuperMemo-2 (atau simplified SM-2) untuk menjadwalkan ulang kartu berdasarkan tingkat ingatan. Ini adalah fitur inti yang membedakan dari flashcard biasa.\n\n- **PRONUNCIATION FEEDBACK:** Gunakan Web Speech API (recognition) untuk menangkap pengucapan pengguna dan membandingkannya dengan target. Tampilkan skor akurasi.\n\n- **GAMIFIED STREAKS:** Hitung streak harian. Animasikan milestone streak (7 hari, 30 hari) dengan confetti. Tampilkan grafik kemajuan per kosakata/topik.',
+    'AR & Spatial': '- **MARKER-BASED AR:** Gunakan AR.js dengan marker Hiro atau custom marker untuk memicu overlay 3D. Fallback ke tampilan kamera biasa jika WebXR tidak didukung.\n\n- **3D OVERLAY QUALITY:** Gunakan Three.js untuk objek 3D yang dirender di atas feed kamera. Pastikan objek mengikuti marker dengan smooth tracking. Implementasikan hit-testing sederhana.\n\n- **PERFORMANCE:** AR adalah berat secara komputasi. Batasi polygon count (<5k). Gunakan requestAnimationFrame dengan delta-time. Tampilkan FPS counter di corner.',
+    'Cybersecurity': '- **ZERO PLAINTEXT RULE:** DILARANG menyimpan password atau data sensitif dalam plaintext. Gunakan CryptoJS (SHA-256 hashing, AES-256 encryption) untuk semua operasi kriptografi.\n\n- **PASSWORD STRENGTH:** Gunakan Zxcvbn untuk analisis kekuatan password real-time. Tampilkan meter visual (Weak/Fair/Strong/Very Strong) dengan penjelasan spesifik.\n\n- **SECURITY AUDIT UX:** Buat tampilan "Security Dashboard" yang menampilkan skor keamanan keseluruhan, daftar kelemahan teridentifikasi, dan langkah remediasi yang actionable.',
+    'Entertainment': '- **CONTENT CATALOG UX:** Bangun grid konten bergaya Netflix dengan hover preview card. Implementasikan infinite scroll dengan virtualized list untuk katalog besar.\n\n- **WATCHLIST & PROGRESS:** Simpan status tontonan (Belum Ditonton/Sedang Ditonton/Selesai) + episode progress di LocalStorage. Tampilkan badge "Continue Watching" di homepage.\n\n- **RECOMMENDATION ENGINE:** Bangun rekomendasi berbasis genre/tag-matching sederhana dari riwayat tontonan. Tampilkan "Karena kamu suka X" section.',
+    'Personal Finance': '- **ZERO-ERROR ARITHMETIC:** Gunakan Intl.NumberFormat untuk semua tampilan mata uang. Implementasikan kalkulasi dengan integer cents (bukan float) untuk menghindari floating-point errors.\n\n- **BUDGET VISUALIZATION:** Tampilkan pie chart pengeluaran per kategori (Chart.js) yang update secara real-time saat transaksi ditambahkan. Gunakan warna kategori yang konsisten.\n\n- **SAVINGS GOALS:** Bangun modul savings goal dengan progress bar, proyeksi tanggal pencapaian berdasarkan rata-rata tabungan, dan motivational milestone celebrations.',
+    'Fashion & Beauty': '- **VISUAL PRIMACY:** Gambar produk adalah raja. Gunakan rasio aspek konsisten (square 1:1 untuk produk, portrait 4:5 untuk outfit). Implementasikan zoom gambar on-tap dan swipe gallery.\n\n- **OUTFIT PLANNER:** Bangun virtual closet di mana user bisa mengunggah/memilih item pakaian dan mengombinasikannya menjadi outfit. Simpan kombinasi outfit favorit.\n\n- **TREND & INSPIRATION:** Tampilkan mood board berbasis Masonry layout. Implementasikan sistem tag/label (Casual, Formal, Streetwear) untuk filtering cepat.',
+    'Volunteer & NGO': '- **IMPACT TRANSPARENCY:** Tampilkan counter dampak secara real-time (orang terbantu, jam volunteer, donasi terkumpul) dengan animasi counter angka yang memotivasi.\n\n- **VOLUNTEER MATCHING:** Bangun sistem pencocokan volunteer dengan kegiatan berdasarkan skill, lokasi (Leaflet), dan ketersediaan jadwal. Tampilkan peta sebaran kegiatan.\n\n- **DONATION TRACKING:** Implementasikan progress bar donasi per kampanye dengan notifikasi milestone (25%, 50%, 75%, 100%). Tampilkan breakdown penggunaan dana secara transparan.',
+    'E-Government': '- **AKSESIBILITAS UNIVERSAL:** Harus memenuhi standar aksesibilitas tinggi: rasio kontras ≥ 4.5:1, ukuran font minimum 16px, dukungan keyboard penuh, dan label ARIA yang komprehensif.\n\n- **FORM DIGITIZATION:** Bangun form multi-step dengan validasi real-time, auto-save progress, dan upload dokumen (KTP, KK) dengan kompresi gambar. Generate PDF resmi menggunakan jsPDF.\n\n- **STATUS TRACKING:** Implementasikan sistem pelacakan permohonan (Diajukan → Diverifikasi → Diproses → Selesai) dengan notifikasi status dan estimasi waktu penyelesaian.',
 };

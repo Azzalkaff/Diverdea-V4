@@ -1,4 +1,4 @@
-import { categories, libStacks, categoryPalettes, colorHarmonies, categoryFocusMap } from './data/config.js';
+import { categories, libStacks, categoryPalettes, colorHarmonies, categoryFocusMap, categoryGroups } from './data/config.js';
 import { generalMechanics, conceptsList1, conceptsListLateral } from './data/mechanics.js';
 import { generalProducts, conceptsList2 } from './data/products.js';
 import { conceptsList3, targetAudiences, constraints, externalAPIs, deviceCapabilities } from './data/extras.js';
@@ -113,6 +113,15 @@ createApp({
             appPrimaryFont: 'Inter',
             appSecondaryFont: 'Inter',
             appWritingStyle: 'informatif',
+            appColorMode: 'dark', // 'dark' | 'light' | 'pastel' | 'vibrant'
+            
+            // New Advanced Settings
+            appTypographyWeight: 'balanced', // 'thin' | 'balanced' | 'bold'
+            appTypographyColor: 'tinted',    // 'monochrome' | 'tinted' | 'colorful'
+            appImageSource: 'unsplash',      // 'none' | 'picsum' | 'unsplash' | 'dicebear' | 'svg-inline'
+            appBackgroundStyle: 'solid',     // 'solid' | 'soft-gradient' | 'mesh-gradient' | 'svg-pattern' | 'image-overlay'
+            appOnboardingStyle: 'carousel',  // 'carousel' | 'bottom-sheet' | 'tooltip' | 'chatbot'
+            appOnboardingSlides: 3,          // 1 to 5
 
             synthesisModes: [
                 { id: 'general', label: 'Quick Mix', title: 'Acak cepat tanpa aturan khusus' },
@@ -179,7 +188,16 @@ createApp({
             categories, libStacks, generalMechanics, generalProducts, 
             conceptsList1, conceptsListLateral, conceptsList2, conceptsList3, 
             targetAudiences, constraints, externalAPIs, deviceCapabilities,
-            categoryPalettes, colorHarmonies, categoryFocusMap
+            categoryPalettes, colorHarmonies, categoryFocusMap,
+
+            // Category Group Picker
+            categoryGroups,
+            selectedCategoryGroup: null,
+
+            // Layout State
+            isLeftSidebarOpen: true,
+            leftSidebarWidth: 280,        // px, clamp: 200–480
+            isLibrarySidebarOpen: true,
         };
     },
     computed: {
@@ -268,14 +286,36 @@ createApp({
             if (this.projectUseAI) extras.push(`AI bawaan (${this.projectAiApi})`);
             if (this.createAudio) extras.push('efek suara');
             if (this.minimalMockData) extras.push('data contoh cepat');
+            extras.push(`bg ${this.appBackgroundStyle.replace('-', ' ')}`);
 
             let summary = `AI akan merancang aplikasi <strong>${domain}${secondary}</strong> — ${traits.join(', ')}`;
             if (extras.length) summary += `, plus <strong>${extras.join(', ')}</strong>`;
-            summary += '.';
+            summary += `. (Gambar: ${this.appImageSource}, Onboarding: ${this.appOnboardingSlides} slide ${this.appOnboardingStyle})`;
             return summary;
         }
     },
     methods: {
+        // --- LAYOUT ---
+        startSidebarResize(e) {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startWidth = this.leftSidebarWidth;
+            const onMove = (e) => {
+                const delta = e.clientX - startX;
+                this.leftSidebarWidth = Math.min(480, Math.max(200, startWidth + delta));
+            };
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            };
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        },
+
         // --- DELEGATED ENGINES ---
         initAudioContext() { 
             AudioEngine.init(); 
@@ -322,10 +362,16 @@ createApp({
             document.documentElement.classList.toggle('dark', this.isDarkMode);
         },
         randomizeColors() {
-            this.color1 = ColorEngine.getRandomHex(); 
-            this.color2 = ColorEngine.getRandomHex(); 
-            this.color3 = ColorEngine.getRandomHex();
-            this.activeHarmony = ''; this.playHoverTick();
+            // Apply mode to random colors
+            this.color1 = ColorEngine.getRandomHex(this.appColorMode); 
+            // If they just randomize completely, we'll re-apply a random harmony based on mode
+            const harmonies = ['complementary', 'analogous', 'triadic', 'split-complementary', 'monochromatic'];
+            const randomHarmony = harmonies[Math.floor(Math.random() * harmonies.length)];
+            const { color2, color3 } = ColorEngine.generateHarmony(this.color1, randomHarmony, this.appColorMode);
+            this.color2 = color2;
+            this.color3 = color3;
+            this.activeHarmony = randomHarmony;
+            this.playHoverTick();
         },
         applyCategoryPalette() {
             const p = this.categoryPalettes[this.selectedCategory];
@@ -333,7 +379,7 @@ createApp({
         },
         applyColorHarmony(type) {
             this.playPop();
-            const { color2, color3 } = ColorEngine.generateHarmony(this.color1, type);
+            const { color2, color3 } = ColorEngine.generateHarmony(this.color1, type, this.appColorMode);
             this.color2 = color2;
             this.color3 = color3;
             this.activeHarmony = type;
@@ -1245,6 +1291,12 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
                 designStyle: this.appDesignStyle,
                 primaryFont: this.appPrimaryFont,
                 secondaryFont: this.appSecondaryFont,
+                typographyWeight: this.appTypographyWeight,
+                typographyColor: this.appTypographyColor,
+                imageSource: this.appImageSource,
+                backgroundStyle: this.appBackgroundStyle,
+                onboardingStyle: this.appOnboardingStyle,
+                onboardingSlides: this.appOnboardingSlides,
                 writingStyle: this.appWritingStyle
             };
             if (!idea) return base;
@@ -1260,6 +1312,12 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
                 designStyle: idea.designStyle || base.designStyle,
                 primaryFont: idea.primaryFont || base.primaryFont,
                 secondaryFont: idea.secondaryFont || base.secondaryFont,
+                typographyWeight: idea.typographyWeight || base.typographyWeight,
+                typographyColor: idea.typographyColor || base.typographyColor,
+                imageSource: idea.imageSource || base.imageSource,
+                backgroundStyle: idea.backgroundStyle || base.backgroundStyle,
+                onboardingStyle: idea.onboardingStyle || base.onboardingStyle,
+                onboardingSlides: idea.onboardingSlides || base.onboardingSlides,
                 writingStyle: idea.writingStyle || base.writingStyle,
                 useNavigation: idea.useNavigation !== undefined ? idea.useNavigation : base.useNavigation
             };

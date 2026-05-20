@@ -170,6 +170,9 @@ export const PromptComposer = {
             `- ${LANGUAGE_LINES[source.language] || LANGUAGE_LINES.id}`,
             `- ${BUSINESS_LINES[source.businessModel] || BUSINESS_LINES.free}`,
             `- Mechanics to implement: ${(source.mechanics || []).length} (do not add extra features beyond this list).`,
+            `- **Typography**: Primary=${source.primaryFont || 'Inter'}, Secondary=${source.secondaryFont || 'Inter'}. Weight=${source.typographyWeight || 'balanced'} (adjust Tailwind font-weight classes accordingly). Color Mode=${source.typographyColor || 'tinted'}.`,
+            `- **Visuals**: Background Style=${source.backgroundStyle || 'solid'}. Image Source=${source.imageSource || 'unsplash'} (if 'none', use purely CSS/Icons; if 'unsplash', use \`https://picsum.photos/seed/xyz/width/height\` as fallback or generic images).`,
+            `- **Onboarding**: Create an onboarding flow with EXACTLY ${source.onboardingSlides || 3} steps, using the "${source.onboardingStyle || 'carousel'}" UI pattern.`,
             '</generation-profile>'
         ];
         return lines.join('\n');
