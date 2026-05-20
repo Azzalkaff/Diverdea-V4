@@ -7,7 +7,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Roboto:wght@400;700&family=Outfit:wght@400;700&family=Playfair+Display:wght@400;700&family=Fira+Code:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -60,27 +60,29 @@
                          class="flex items-center justify-between cursor-pointer group">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-gears text-matcha text-[11px] w-4"></i>
-                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Engine Mode</h4>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Generation Settings</h4>
+                            <span class="text-[6px] font-black uppercase tracking-wider px-1 py-0.5 rounded bg-red-500/15 text-red-600 dark:text-red-400" title="Paling memengaruhi hasil AI">Critical</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">{{ synthesisMode }}</span>
+                            <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">{{ (synthesisModes.find(m => m.id === synthesisMode) || {}).label || synthesisMode }}</span>
                             <i class="fa-solid fa-chevron-down text-[8px] opacity-40 transition-transform duration-300" :class="{'rotate-180': sidebarOpenSections.engine}"></i>
                         </div>
                     </div>
                     
                     <div v-show="sidebarOpenSections.engine" class="space-y-3.5 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in text-left">
                         <div class="space-y-1.5">
-                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Synthesis Mode</label>
+                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream" title="Cara mesin menghasilkan ide — AI Planner paling kuat untuk pemula">How to Generate?</label>
                             <div class="grid grid-cols-2 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
-                                <button v-for="m in ['general', 'standard', 'lateral', 'manual', 'ai']" :key="m" @click="synthesisMode = m; playPop()" 
+                                <button v-for="m in synthesisModes" :key="m.id" @click="synthesisMode = m.id; playPop()" 
+                                        :title="m.title"
                                         class="text-[9px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all text-center text-matcha-dark dark:text-cream"
-                                        :class="[synthesisMode === m ? 'bg-matcha text-matcha-dark shadow-sm' : 'opacity-50', m === 'ai' ? 'col-span-2' : '']">{{ m }}</button>
+                                        :class="[synthesisMode === m.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-matcha/40' : 'opacity-50', m.id === 'ai' ? 'col-span-2' : '']">{{ m.label }}</button>
                             </div>
                         </div>
 
                         <div class="space-y-1.5 text-left">
                             <div class="flex justify-between items-center">
-                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Primary Domain</label>
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream" title="Kategori utama aplikasi yang akan dirancang AI">App Category</label>
                                 <button @click="toggleCustomPrimary" class="text-[8px] font-bold text-matcha hover:opacity-100 opacity-60 transition-opacity">
                                     {{ isCustomPrimary ? 'Select Existing' : '+ Custom' }}
                                 </button>
@@ -95,7 +97,7 @@
                         <!-- Guided Autonomy (Secondary Category & Custom Directives) -->
                         <div class="p-3 bg-oatmeal/20 dark:bg-white/5 border border-matcha/10 rounded-xl space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream">Secondary Domain</span>
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream" title="Campurkan domain kedua untuk ide lebih unik">Mix-in Category</span>
                                 <button @click="toggleCustomSecondary" class="text-[8px] font-bold text-matcha hover:opacity-100 opacity-60 transition-opacity">
                                     {{ isCustomSecondary ? 'Select Existing' : '+ Custom' }}
                                 </button>
@@ -107,20 +109,159 @@
                                 <option v-for="cat in categories.filter(c => c !== selectedCategory)" :value="cat" class="bg-cream dark:bg-matcha-surface">{{ cat }}</option>
                             </select>
                             <div class="space-y-1">
-                                <label class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream block">Custom Synthesis Rules</label>
+                                <label class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream block" title="Instruksi khusus yang wajib diikuti AI">Special Instructions for AI</label>
                                 <textarea v-model="customDirectives" rows="2" placeholder="e.g. AI must translate chatbot voice input directly to dynamic Chart.js points" class="w-full px-3 py-2 text-xs bg-cream dark:bg-white/10 border border-matcha/20 rounded-lg font-medium outline-none resize-none placeholder-matcha/30 text-matcha-dark dark:text-cream"></textarea>
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">Target Output</label>
+                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream" title="Satu file HTML atau proyek multi-file lengkap">Project Format</label>
                             <div class="flex bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
-                                <button v-for="mode in [{id:'standard', label:'Single HTML'}, {id:'master', label:'Modern Stack'}]" :key="mode.id" 
+                                <button v-for="mode in [{id:'standard', label:'One File', title:'Satu halaman HTML siap pakai'}, {id:'master', label:'Multi-File', title:'Struktur proyek modern multi-file'}]" :key="mode.id" 
                                         @click="promptMode = mode.id; playPop()" 
+                                        :title="mode.title"
                                         class="flex-1 text-[9px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all text-center text-matcha-dark dark:text-cream"
-                                        :class="promptMode === mode.id ? 'bg-matcha text-matcha-dark shadow-sm' : 'opacity-50'">{{ mode.label }}</button>
+                                        :class="promptMode === mode.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-matcha/40' : 'opacity-50'">{{ mode.label }}</button>
                             </div>
                         </div>
+
+                        <!-- ===== NEW: OUTPUT CONTROLS (Highest Leverage) ===== -->
+                        <div class="space-y-3 pt-3 border-t border-oatmeal/30 dark:border-white/5">
+                            <p class="text-[8px] font-black uppercase tracking-widest opacity-50 text-matcha-dark dark:text-cream flex items-center gap-1.5">
+                                <i class="fa-solid fa-sliders"></i> Output Controls
+                            </p>
+
+                            <!-- Complexity Level -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream" title="Mengontrol kedalaman fitur & mekanik di output AI">
+                                    App Complexity
+                                    <span class="text-[7px] bg-amber-400/20 text-amber-600 dark:text-amber-400 px-1 py-0.5 rounded font-black">HIGH IMPACT</span>
+                                </label>
+                                <div class="grid grid-cols-3 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                    <button v-for="c in [{id:'simple',label:'Simple',icon:'fa-seedling'},{id:'medium',label:'Balanced',icon:'fa-star-half-stroke'},{id:'advanced',label:'Full',icon:'fa-rocket'}]" 
+                                            :key="c.id" @click="appComplexity = c.id; playPop()"
+                                            class="text-[8px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all flex flex-col items-center gap-0.5 text-matcha-dark dark:text-cream"
+                                            :class="appComplexity === c.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-amber-400/50' : 'opacity-40 hover:opacity-70'">
+                                        <i :class="['fa-solid text-[9px]', c.icon]"></i>
+                                        {{ c.label }}
+                                    </button>
+                                </div>
+                                <p class="text-[8px] opacity-40 leading-tight text-matcha-dark dark:text-cream">
+                                    <span v-if="appComplexity==='simple'">1-2 fitur fokus, cepat dibangun</span>
+                                    <span v-else-if="appComplexity==='medium'">3-4 fitur lengkap & terstruktur</span>
+                                    <span v-else>4-5 fitur berlapis & kaya interaksi</span>
+                                </p>
+                            </div>
+
+                            <!-- Platform Target -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream" title="Mengubah layout, gesture, dan pola UX yang disarankan AI">
+                                    Platform Target
+                                    <span class="text-[7px] bg-amber-400/20 text-amber-600 dark:text-amber-400 px-1 py-0.5 rounded font-black">HIGH IMPACT</span>
+                                </label>
+                                <div class="grid grid-cols-3 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                    <button v-for="p in [{id:'mobile',label:'Mobile',icon:'fa-mobile-screen'},{id:'desktop',label:'Desktop',icon:'fa-display'},{id:'pwa',label:'PWA',icon:'fa-download'}]" 
+                                            :key="p.id" @click="appPlatform = p.id; playPop()"
+                                            class="text-[8px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all flex flex-col items-center gap-0.5 text-matcha-dark dark:text-cream"
+                                            :class="appPlatform === p.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-amber-400/50' : 'opacity-40 hover:opacity-70'">
+                                        <i :class="['fa-solid text-[9px]', p.icon]"></i>
+                                        {{ p.label }}
+                                    </button>
+                                </div>
+                                <p class="text-[8px] opacity-40 leading-tight text-matcha-dark dark:text-cream">
+                                    <span v-if="appPlatform==='mobile'">Gesture & notifikasi push diutamakan</span>
+                                    <span v-else-if="appPlatform==='desktop'">Multi-panel & data dashboard</span>
+                                    <span v-else>Offline-ready & installable</span>
+                                </p>
+                            </div>
+
+                            <!-- Output Language -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream">
+                                    Output Language
+                                    <span class="text-[7px] bg-amber-400/20 text-amber-600 dark:text-amber-400 px-1 py-0.5 rounded font-black">HIGH IMPACT</span>
+                                </label>
+                                <div class="grid grid-cols-3 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                    <button v-for="l in [{id:'id',label:'ID',icon:'fa-language'},{id:'en',label:'EN',icon:'fa-globe'},{id:'bilingual',label:'Both',icon:'fa-earth-americas'}]" 
+                                            :key="l.id" @click="appLanguage = l.id; playPop()"
+                                            class="text-[8px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all flex flex-col items-center gap-0.5 text-matcha-dark dark:text-cream"
+                                            :class="appLanguage === l.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-amber-400/50' : 'opacity-40 hover:opacity-70'">
+                                        <i :class="['fa-solid text-[9px]', l.icon]"></i>
+                                        {{ l.label }}
+                                    </button>
+                                </div>
+                                <p class="text-[8px] opacity-40 leading-tight text-matcha-dark dark:text-cream">Semua label & konten di hasil AI mengikuti pilihan ini</p>
+                            </div>
+
+                            <!-- Business Model -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream" title="AI akan menyarankan paywall, tier, atau model monetisasi">
+                                    Business Model
+                                    <span class="text-[7px] bg-amber-400/20 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded font-black">IMPORTANT</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                    <button v-for="b in [{id:'free',label:'Free',icon:'fa-gift'},{id:'freemium',label:'Freemium',icon:'fa-layer-group'},{id:'subscription',label:'Subscribe',icon:'fa-repeat'},{id:'onetime',label:'One-time',icon:'fa-tag'}]" 
+                                            :key="b.id" @click="appBusinessModel = b.id; playPop()"
+                                            class="text-[8px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all flex flex-col items-center gap-0.5 text-matcha-dark dark:text-cream"
+                                            :class="appBusinessModel === b.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-amber-400/40' : 'opacity-40 hover:opacity-70'">
+                                        <i :class="['fa-solid text-[9px]', b.icon]"></i>
+                                        {{ b.label }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Design Style -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream" title="Gaya visual keseluruhan aplikasi">
+                                    Design Style
+                                </label>
+                                <div class="grid grid-cols-2 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                    <button v-for="ds in [{id:'very-minimalist',label:'Very Minimal'},{id:'minimalist',label:'Minimalist'},{id:'modern',label:'Modern'},{id:'playful',label:'Playful'},{id:'corporate',label:'Corporate'},{id:'brutalist',label:'Brutalist'},{id:'glassmorphism',label:'Glassmorphism'}]" 
+                                            :key="ds.id" @click="appDesignStyle = ds.id; playPop()"
+                                            class="text-[8px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all flex flex-col items-center gap-0.5 text-matcha-dark dark:text-cream"
+                                            :class="appDesignStyle === ds.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-amber-400/40' : 'opacity-40 hover:opacity-70'">
+                                        {{ ds.label }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Typography -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream" title="Pemilihan font utama dan sekunder">
+                                    Typography
+                                </label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <p class="text-[7px] uppercase tracking-widest opacity-40 mb-1">Primary Font</p>
+                                        <select v-model="appPrimaryFont" @change="playPop()" class="w-full text-[9px] font-bold bg-oatmeal/30 dark:bg-white/5 border border-matcha/10 p-1.5 rounded-lg outline-none text-matcha-dark dark:text-cream" :style="{ fontFamily: appPrimaryFont }">
+                                            <option v-for="font in ['Inter', 'Roboto', 'Outfit', 'Playfair Display', 'Fira Code', 'Space Grotesk', 'Comic Sans MS']" :value="font" :style="{ fontFamily: font }" class="bg-cream dark:bg-matcha-surface">{{ font }}</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <p class="text-[7px] uppercase tracking-widest opacity-40 mb-1">Secondary Font</p>
+                                        <select v-model="appSecondaryFont" @change="playPop()" class="w-full text-[9px] font-bold bg-oatmeal/30 dark:bg-white/5 border border-matcha/10 p-1.5 rounded-lg outline-none text-matcha-dark dark:text-cream" :style="{ fontFamily: appSecondaryFont }">
+                                            <option v-for="font in ['Inter', 'Roboto', 'Outfit', 'Playfair Display', 'Fira Code', 'Space Grotesk', 'Comic Sans MS']" :value="font" :style="{ fontFamily: font }" class="bg-cream dark:bg-matcha-surface">{{ font }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Writing Style -->
+                            <div class="space-y-1.5">
+                                <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold flex items-center gap-1.5 text-matcha-dark dark:text-cream" title="Nada dan panjang penulisan copy (scriptwriting)">
+                                    Writing Style
+                                </label>
+                                <div class="grid grid-cols-2 gap-1 bg-oatmeal/30 dark:bg-white/5 p-1 rounded-lg border border-matcha/10">
+                                    <button v-for="ws in [{id:'sangat-singkat',label:'Very Short'},{id:'singkat',label:'Short'},{id:'informatif',label:'Informative'},{id:'deskriptif',label:'Descriptive'},{id:'persuasif',label:'Persuasive'},{id:'humoris',label:'Humorous'},{id:'formal',label:'Formal'}]" 
+                                            :key="ws.id" @click="appWritingStyle = ws.id; playPop()"
+                                            class="text-[8px] font-bold uppercase tracking-widest py-1.5 rounded-md transition-all flex flex-col items-center gap-0.5 text-matcha-dark dark:text-cream"
+                                            :class="appWritingStyle === ws.id ? 'bg-matcha text-matcha-dark shadow-sm ring-1 ring-amber-400/40' : 'opacity-40 hover:opacity-70'">
+                                        {{ ws.label }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -130,7 +271,8 @@
                          class="flex items-center justify-between cursor-pointer group">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-cubes text-matcha text-[11px] w-4"></i>
-                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Composition</h4>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Features & Layout</h4>
+                            <span class="text-[6px] font-black uppercase tracking-wider px-1 py-0.5 rounded bg-red-500/15 text-red-600 dark:text-red-400" title="Jumlah fitur sangat memengaruhi output">Critical</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -142,13 +284,13 @@
                     
                     <div v-show="sidebarOpenSections.composition" class="space-y-3.5 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in text-left">
                         <div v-for="cfg in [
-                            {label:'Mechanics', key:'mechanicCount'}, 
-                            {label:'Styles', key:'styleCount', toggle:'useThirdConcept'}, 
-                            {label:'Audiences', key:'audienceCount', toggle:'useAudience'}, 
-                            {label:'Constraints', key:'constraintCount', toggle:'useConstraint'},
-                            {label:'Navigation Views', key:'navigationCount', toggle:'useNavigation'}
+                            {label:'Core Features', hint:'Berapa fitur utama dihasilkan', key:'mechanicCount'}, 
+                            {label:'Visual Styles', hint:'Variasi gaya tampilan', key:'styleCount', toggle:'useThirdConcept'}, 
+                            {label:'Target Users', hint:'Segmentasi pengguna', key:'audienceCount', toggle:'useAudience'}, 
+                            {label:'Design Limits', hint:'Batasan teknis/UX', key:'constraintCount', toggle:'useConstraint'},
+                            {label:'App Pages', hint:'Halaman/section navigasi', key:'navigationCount', toggle:'useNavigation'}
                         ]" v-show="!cfg.toggle || $data[cfg.toggle]" :key="cfg.key" class="space-y-1.5">
-                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">{{ cfg.label }}</label>
+                            <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream" :title="cfg.hint || ''">{{ cfg.label }}</label>
                             <div class="flex bg-cream dark:bg-white/5 p-1 rounded-xl border border-matcha/20">
                                 <button v-for="n in [0,1,2,3,4,5]" :key="n" @click="setCount(cfg.key, n)" 
                                         class="flex-1 py-1 text-[9px] font-bold rounded-lg transition-all text-center text-matcha-dark dark:text-cream"
@@ -164,7 +306,8 @@
                          class="flex items-center justify-between cursor-pointer group">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-matcha text-[11px] w-4"></i>
-                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">UX Essentials</h4>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Look & Feel</h4>
+                            <span class="text-[6px] font-black uppercase tracking-wider px-1 py-0.5 rounded bg-amber-400/15 text-amber-700 dark:text-amber-300" title="Memperkaya tampilan & audiens">Important</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -176,19 +319,22 @@
                     
                     <div v-show="sidebarOpenSections.uxEssentials" class="space-y-2 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in">
                         <div v-for="t in [
-                            {label:'UI Style', key:'useThirdConcept', icon:'fa-paint-roller'}, 
-                            {label:'Target Audience', key:'useAudience', icon:'fa-users'}, 
-                            {label:'Constraint', key:'useConstraint', icon:'fa-triangle-exclamation'},
-                            {label:'App Navigation (SPA)', key:'useNavigation', icon:'fa-compass'},
-                            {label:'Include Inline SVG Logo', key:'createLogo', icon:'fa-image'},
-                            {label:'Micro-Animations', key:'useAnimations', icon:'fa-play'}
+                            {label:'Custom Visual Style', hint:'Adds aesthetic style tags to AI output', key:'useThirdConcept', icon:'fa-paint-roller'}, 
+                            {label:'Define Target Audience', hint:'AI tailors features for specific users', key:'useAudience', icon:'fa-users'}, 
+                            {label:'Design Restrictions', hint:'Limits scope so AI stays focused', key:'useConstraint', icon:'fa-triangle-exclamation'},
+                            {label:'App Page Navigation', hint:'Adds multi-page navigation structure', key:'useNavigation', icon:'fa-compass'},
+                            {label:'Generate App Logo', hint:'AI creates an SVG logo for the app', key:'createLogo', icon:'fa-image'},
+                            {label:'Add Micro-Animations', hint:'Enriches UI with motion effects', key:'useAnimations', icon:'fa-play'}
                         ]" :key="t.key" class="flex flex-col bg-cream/30 dark:bg-white/[0.01] p-2 rounded-xl border border-oatmeal/40 dark:border-white/5 hover:border-matcha/20 hover:bg-cream/60 dark:hover:bg-white/[0.03] transition-all">
                             <div class="flex items-center justify-between cursor-pointer" @click="toggleState(t.key)">
-                                <div class="flex items-center gap-2">
-                                    <i :class="['fa-solid text-[9px] text-matcha opacity-70 w-4', t.icon]"></i>
-                                    <span class="text-[9px] opacity-75 font-bold uppercase tracking-widest text-matcha-dark dark:text-cream">{{ t.label }}</span>
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <i :class="['fa-solid text-[9px] text-matcha opacity-70 w-4 flex-shrink-0', t.icon]"></i>
+                                    <div class="min-w-0">
+                                        <span class="text-[9px] opacity-75 font-bold uppercase tracking-widest text-matcha-dark dark:text-cream block leading-tight">{{ t.label }}</span>
+                                        <span class="text-[8px] opacity-40 font-normal normal-case tracking-normal text-matcha-dark dark:text-cream leading-tight block truncate">{{ t.hint }}</span>
+                                    </div>
                                 </div>
-                                <div class="relative w-8 h-4 rounded-full transition-colors" :class="$data[t.key] ? 'bg-matcha' : 'bg-red-400/40 dark:bg-red-500/20'">
+                                <div class="relative w-8 h-4 rounded-full transition-colors flex-shrink-0 ml-2" :class="$data[t.key] ? 'bg-matcha' : 'bg-red-400/40 dark:bg-red-500/20'">
                                     <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" :class="{'translate-x-4': $data[t.key]}"></div>
                                 </div>
                             </div>
@@ -215,7 +361,8 @@
                          class="flex items-center justify-between cursor-pointer group">
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-laptop-code text-matcha text-[11px] w-4"></i>
-                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Tech Integrations</h4>
+                            <h4 class="text-[9px] font-bold uppercase tracking-widest text-matcha-dark dark:text-cream opacity-80 group-hover:opacity-100 transition-opacity">Smart Features</h4>
+                            <span class="text-[6px] font-black uppercase tracking-wider px-1 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" title="Opsional — aktifkan jika dibutuhkan">Optional</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-[7px] bg-matcha/20 dark:bg-matcha/10 text-matcha font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -227,19 +374,22 @@
                     
                     <div v-show="sidebarOpenSections.techIntegrations" class="space-y-2 pt-3 border-t border-oatmeal/30 dark:border-white/5 animate-fade-in">
                         <div v-for="t in [
-                            {label:'API Integration', key:'useAPI', icon:'fa-plug'},
-                            {label:'Hardware Access', key:'useHardware', icon:'fa-microchip'},
-                            {label:'App Audio & SFX', key:'createAudio', icon:'fa-volume-high'},
-                            {label:'Dynamic Charts', key:'useCharts', icon:'fa-chart-line'},
-                            {label:'Token Opt: Mock Data', key:'minimalMockData', icon:'fa-database'},
-                            {label:'App AI Integration', key:'projectUseAI', icon:'fa-robot'}
+                            {label:'Connect External APIs', hint:'Maps, YouTube, payments, etc.', key:'useAPI', icon:'fa-plug'},
+                            {label:'Use Device Hardware', hint:'Camera, GPS, microphone access', key:'useHardware', icon:'fa-microchip'},
+                            {label:'Sound Effects & Audio', hint:'App plays sounds & music', key:'createAudio', icon:'fa-volume-high'},
+                            {label:'Data Charts & Graphs', hint:'Visualize data with Chart.js', key:'useCharts', icon:'fa-chart-line'},
+                            {label:'Faster Generation', hint:'Uses sample data, not real fetch', key:'minimalMockData', icon:'fa-database'},
+                            {label:'Make My App Intelligent', hint:'Embeds AI into the output app', key:'projectUseAI', icon:'fa-robot'}
                         ]" :key="t.key" class="flex flex-col bg-cream/30 dark:bg-white/[0.01] p-2 rounded-xl border border-oatmeal/40 dark:border-white/5 hover:border-matcha/20 hover:bg-cream/60 dark:hover:bg-white/[0.03] transition-all">
                             <div class="flex items-center justify-between cursor-pointer" @click="toggleState(t.key)">
-                                <div class="flex items-center gap-2">
-                                    <i :class="['fa-solid text-[9px] text-matcha opacity-70 w-4', t.icon]"></i>
-                                    <span class="text-[9px] opacity-75 font-bold uppercase tracking-widest text-matcha-dark dark:text-cream">{{ t.label }}</span>
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <i :class="['fa-solid text-[9px] text-matcha opacity-70 w-4 flex-shrink-0', t.icon]"></i>
+                                    <div class="min-w-0">
+                                        <span class="text-[9px] opacity-75 font-bold uppercase tracking-widest text-matcha-dark dark:text-cream block leading-tight">{{ t.label }}</span>
+                                        <span class="text-[8px] opacity-40 font-normal normal-case tracking-normal text-matcha-dark dark:text-cream leading-tight block truncate">{{ t.hint }}</span>
+                                    </div>
                                 </div>
-                                <div class="relative w-8 h-4 rounded-full transition-colors" :class="$data[t.key] ? 'bg-matcha' : 'bg-red-400/40 dark:bg-red-500/20'">
+                                <div class="relative w-8 h-4 rounded-full transition-colors flex-shrink-0 ml-2" :class="$data[t.key] ? 'bg-matcha' : 'bg-red-400/40 dark:bg-red-500/20'">
                                     <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" :class="{'translate-x-4': $data[t.key]}"></div>
                                 </div>
                             </div>
@@ -263,13 +413,20 @@
                             </div>
 
                             <!-- Provider Buttons for App AI Integration -->
-                            <div v-if="t.key === 'projectUseAI' && projectUseAI" class="mt-3 pl-2 border-l-2 border-matcha/30 space-y-2 animate-fade-in">
+                            <div v-if="t.key === 'projectUseAI' && projectUseAI" class="mt-3 pl-2 border-l-2 border-matcha/30 space-y-2 animate-fade-in text-left">
                                 <div class="flex gap-2">
                                     <button v-for="api in [{id:'gemini', label:'Gemini'}, {id:'groq', label:'Groq'}]" :key="api.id" @click="projectAiApi = api.id; saveSettings()"
                                             class="flex-1 py-1 text-[9px] font-bold rounded-lg border transition-all text-center text-matcha-dark dark:text-cream"
                                             :class="projectAiApi === api.id ? 'bg-matcha border-matcha text-matcha-dark shadow-sm opacity-100' : 'bg-transparent border-oatmeal dark:border-white/10 opacity-60'">
                                         {{ api.label }}
                                     </button>
+                                </div>
+                                <div class="space-y-1.5 mt-2">
+                                    <label class="text-[8px] uppercase tracking-widest opacity-60 font-bold block text-matcha-dark dark:text-cream">AI Modalities</label>
+                                    <label v-for="mod in ['Vision (Image Analysis)', 'Speech-to-Text (Voice Input)', 'Text-to-Speech (Voice Output)', 'Data & Entity Extraction', 'Sentiment & Emotion Analysis', 'Document Analysis (Q&A)', 'Predictive Analytics']" :key="mod" class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" :value="mod" v-model="projectAiModalities" class="w-3 h-3 accent-matcha bg-cream border-oatmeal rounded cursor-pointer">
+                                        <span class="text-[9px] opacity-60 group-hover:opacity-100 transition-opacity text-matcha-dark dark:text-cream">{{ mod }}</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -313,7 +470,7 @@
 
                         <!-- Theme Mode Optimization -->
                         <div class="space-y-2 pt-3 border-t border-oatmeal/30 dark:border-white/5">
-                            <label class="text-[9px] font-black uppercase tracking-widest opacity-40 block text-matcha-dark dark:text-cream">Theme Mode (Token Optimizer)</label>
+                            <label class="text-[9px] font-black uppercase tracking-widest opacity-40 block text-matcha-dark dark:text-cream" title="Gelap saja = prompt lebih ringkas & cepat">App Theme</label>
                             <div class="grid grid-cols-3 gap-1 p-0.5 bg-cream dark:bg-white/5 rounded-lg border border-matcha/20">
                                 <button v-for="mode in [{id:'dark', label:'Dark Only'}, {id:'light', label:'Light Only'}, {id:'both', label:'Both (Toggle)'}]" 
                                         :key="mode.id" @click="projectThemeMode = mode.id; playPop()"
@@ -382,6 +539,20 @@
                             </button>
                         </div>
                         
+                        <!-- Live config summary: feedback loop between toggles & AI output -->
+                        <div class="space-y-1">
+                            <p class="text-[8px] font-black uppercase tracking-widest text-matcha/80 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-[9px]"></i> Active Config Preview
+                            </p>
+                            <div class="relative overflow-hidden rounded-2xl border border-matcha/25 bg-gradient-to-br from-matcha/8 to-transparent px-4 py-3 shadow-sm">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-matcha/50 rounded-l-2xl"></div>
+                                <div class="flex items-start gap-2.5 pl-2">
+                                    <i class="fa-solid fa-circle-info text-matcha/60 text-[11px] mt-0.5 flex-shrink-0"></i>
+                                    <p class="text-[11px] leading-relaxed text-matcha-dark/80 dark:text-cream/80" v-html="aiConfigSummary"></p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div v-if="aiError" class="text-xs text-red-500 font-bold max-w-sm truncate w-full md:w-auto"><i class="fa-solid fa-circle-exclamation mr-1.5"></i>{{ aiError }}</div>
                             <div v-else class="text-[10px] opacity-40 font-mono hidden md:block">DiverDea Ideation Module</div>
@@ -478,13 +649,13 @@
                                             </ul>
                                         </div>
                                         <div v-if="aiPreviewConcept.navigation && aiPreviewConcept.navigation.length">
-                                            <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-compass mr-1"></i> Navigation Views (Sidebar)</h4>
+                                            <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-compass mr-1"></i> App Pages</h4>
                                             <ul class="flex flex-wrap gap-2">
                                                 <li v-for="nav in aiPreviewConcept.navigation" class="text-[10px] font-bold px-3 py-1.5 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-500/20">{{ nav }}</li>
                                             </ul>
                                         </div>
                                         <div v-if="aiPreviewConcept.constraints && aiPreviewConcept.constraints.length">
-                                            <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Constraints</h4>
+                                            <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Design Restrictions</h4>
                                             <ul class="flex flex-col gap-2">
                                                 <li v-for="cons in aiPreviewConcept.constraints" class="text-xs font-bold px-3 py-2 bg-red-500/10 text-red-700 dark:text-red-300 rounded-lg">{{ cons }}</li>
                                             </ul>
@@ -614,7 +785,7 @@
                                     <!-- App AI Integration quick toggle -->
                                     <div class="flex items-center gap-3 bg-white/40 dark:bg-white/5 border border-matcha/20 px-4 py-3 rounded-2xl">
                                         <div class="flex items-center gap-2 cursor-pointer animate-fade-in" @click="projectUseAI = !projectUseAI; saveSettings()">
-                                            <span class="text-[9px] font-black uppercase tracking-wider opacity-70">App AI:</span>
+                                            <span class="text-[9px] font-black uppercase tracking-wider opacity-70" title="AI hidup di dalam aplikasi hasil generate">Smart App:</span>
                                             <div class="relative w-8 h-4 bg-oatmeal rounded-full transition-colors" :class="{'bg-matcha': projectUseAI}">
                                                 <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-transform" :class="{'translate-x-4': projectUseAI}"></div>
                                             </div>

@@ -3,6 +3,8 @@
  * Core logic for idea generation and AI prompt building.
  */
 
+import { PromptComposer } from './promptComposer.js';
+
 export const SynthesisEngine = {
     generatePrompt(source, libStacks, categoryFocusMap, colors) {
         const categoryConfigs = {
@@ -181,43 +183,66 @@ export const SynthesisEngine = {
         const hasMic = source.hardware?.some(hw => hw.toLowerCase().includes('microphone'));
 
         const aiIntegrationDirective = source.useAI 
-            ? `\n- **REAL Live AI Integration (CRITICAL - NO DUMMY DATA)**: Aplikasi prototype ini WAJIB benar-benar terintegrasi secara LIVE dengan AI sebagai motor penggerak utama fitur fungsionalnya. **DILARANG keras menyimulasikan data dummy (mock) atau respons palsu menggunakan setTimeout jika AI aktif.** Seluruh data hasil generate AI harus merupakan hasil kembalian (parsing JSON) riil dari API dan langsung memengaruhi state/tampilan aplikasi secara dinamis agar bisa langsung dimainkan oleh user secara nyata.
-- **Dynamic API Provider & Key Input**: Di dalam panel pengaturan (Global Settings Menu) aplikasi hasil ini, wajib disediakan opsi/dropdown bagi user/client untuk **memilih antara "Gemini" atau "Groq"**, serta input password/text untuk **API Key** yang sesuai. Simpan pilihan provider dan key ini secara lokal di LocalStorage.
-- **Exact Model & API Endpoints**:
-  1. Jika user memilih **Gemini**: Gunakan model **gemini-3.1-flash-lite** atau **gemini-3-flash-preview** (Gemini 3 / 3.1). Endpoint: \`POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=\${API_KEY}\` dengan JSON payload: \`{"contents": [{"parts": [{"text": PROMPT}]}]}\`
-  2. Jika user memilih **Groq**: Gunakan model **llama-3.1-8b-instant** atau **llama3-70b-8192** (Llama 3.0 / 3.1). Endpoint: \`POST https://api.groq.com/openai/v1/chat/completions\` dengan headers: \`Authorization: Bearer \${API_KEY}\` dan \`Content-Type: application/json\`, serta JSON payload: \`{"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": PROMPT}]}\`
-- **Graceful Key Empty State**: Jika API Key belum diinput oleh user di Settings, render state layar "API Key Required" yang estetik dengan deskripsi instruksi dan tombol "Buka Pengaturan" untuk memandu user memasukkan API Key agar fitur AI dapat aktif.
-- **AI AGENT MODE & UI STATE MUTATION (MANDATORY)**: Integrasikan chatbot obrolan AI di dalam prototipe ini sebagai **AI Agent**. AI dilarang keras hanya membalas teks obrolan kosmetik. 
-  1. AI harus dirancang untuk memahami instruksi perintah pengguna (misal: "tambah belanja kopi 25rb", "ubah grafik ke diagram lingkaran", atau "ganti tema").
-  2. Selain membalas pesan obrolan, respons AI wajib menyertakan payload data (atau instruksi teks terstruktur) yang secara cerdas **memicu mutasi fungsi JavaScript internal** (misal: memanggil \`addExpense()\`, \`updateChart()\`, \`toggleSettings()\`) untuk langsung merubah state reaktif Vue di layar secara real-time.`
+            ? `\n- **DIVERDEA AI SDK (CRITICAL - NO BOILERPLATE)**: Aplikasi prototype ini WAJIB menggunakan SDK multimodal buatan DiverDea. DILARANG KERAS menulis kode \`fetch\` panjang untuk memanggil API Gemini atau Groq secara manual.
+- **REAL LIVE AI (STRICTLY NO DUMMY DATA)**: Anda DILARANG KERAS menyimulasikan data dummy (mock) atau respons palsu menggunakan \`setTimeout\`. Aplikasi ini harus benar-benar terintegrasi secara LIVE dengan AI sebagai motor penggerak utama fitur fungsionalnya.
+- **Wajib Include SDK**: Tambahkan \`<script src="./sdk/diverdea-ai-sdk.js"></script>\` di bagian \`<head>\`.
+- **Inisialisasi**: Di dalam \`setup()\` Vue Anda, minta API Key lewat input dari user lalu inisialisasikan \`DiverDeaAI.init({ provider: '${source.aiApi}', apiKey: 'KEY_DARI_USER' })\`.
+- **Multimodal AI Modalities**: ${
+    (source.aiModalities && source.aiModalities.length > 0) 
+    ? `\n  - Aplikasi ini wajib memprioritaskan fungsi multimodal SDK berikut:\n` + source.aiModalities.map(m => {
+        if (m.includes('Vision')) return '    * **Vision**: Gunakan `await DiverDeaAI.Vision.analyze(canvasElement, "prompt")` untuk menganalisis gambar dari kamera.';
+        if (m.includes('Voice Input')) return '    * **Speech-to-Text**: Gunakan `await DiverDeaAI.Audio.listenAndTranscribe((text) => {})` untuk merekam suara mikrofon menjadi teks.';
+        if (m.includes('Voice Output')) return '    * **Text-to-Speech**: Gunakan `DiverDeaAI.Audio.speak("text")` agar aplikasi merespons menggunakan suara.';
+        if (m.includes('Extraction')) return '    * **Data Extraction**: Gunakan `await DiverDeaAI.Data.extract(text, schema)` untuk mem-parsing data acak menjadi JSON terstruktur.';
+        if (m.includes('Sentiment')) return '    * **Sentiment Analysis**: Gunakan `await DiverDeaAI.Data.analyzeSentiment(text)` untuk mendeteksi emosi pengguna.';
+        if (m.includes('Document Analysis')) return '    * **Document Q&A**: Gunakan `await DiverDeaAI.Data.documentQA(docText, question)` untuk menjawab pertanyaan berdasarkan dokumen.';
+        return '    * **Predictive Analytics**: Gunakan `await DiverDeaAI.predict(jsonData)` untuk mencari pola tersembunyi.';
+      }).join('\n')
+    : `\n  - Gunakan \`await DiverDeaAI.Chat.ask("prompt")\` untuk mendapatkan respons AI yang cerdas.`
+}
+- **UI State Mutation**: Respons AI (yang sudah otomatis diparsing oleh SDK jika outputnya JSON) harus secara cerdas memicu mutasi fungsi JavaScript internal secara real-time.`
             : '';
 
-        const mechanicsCount = (source.mechanics || []).length;
+        const profile = PromptComposer.getProfile(source);
         const mechanicsList = (source.mechanics || []).map((m, i) => `  ${i + 1}. "${m}"`).join('\n');
         const aesthetics = (source.styles || []).join(', ') || 'Modern Minimalist';
-        const activeConstraint = (source.constraints && source.constraints.length > 0) 
-            ? source.constraints.join(', ') 
-            : "Must be highly functional, clean, and accessible";
-        
-        // Memformat Category Directives agar terlihat lebih rapi seperti di contoh (Bold di awal kata)
-        const formattedCategoryDirectives = config.directives.map(d => {
-            const splitIndex = d.indexOf(':');
-            if (splitIndex !== -1) {
-                return `- **${d.substring(0, splitIndex)}:**${d.substring(splitIndex + 1)}`;
-            }
-            return `- ${d}`;
-        }).join('\n');
 
-        const apiDirective = `\n- **External APIs (Guided Autonomy)**: ${source.apis?.length ? source.apis.join(', ') : 'None explicitly specified.'} (Anda memiliki otonomi terpandu untuk secara dinamis menentukan, merancang, dan membangun antarmuka/skema data palsu fungsional dari API eksternal lain yang relevan dengan sinergi Kategori Utama dan Pendukung).`;
+        const formattedCategoryDirectives = PromptComposer.formatDirectives(
+            PromptComposer.pickDirectives(config.directives, profile.maxCategoryDirectives)
+        );
+        const secondaryConfig = source.secondaryCategory && source.secondaryCategory !== 'None'
+            ? categoryConfigs[source.secondaryCategory] : null;
+        const formattedSecondaryDirectives = secondaryConfig && profile.maxSecondaryDirectives > 0
+            ? PromptComposer.formatDirectives(
+                PromptComposer.pickDirectives(secondaryConfig.directives, profile.maxSecondaryDirectives)
+            )
+            : '';
+
+        const adaptiveProfileBlock = PromptComposer.buildAdaptiveProfileBlock(source, profile);
+        const navigationSpec = PromptComposer.navigationSpec(source, profile);
+        const resolvedRoutes = PromptComposer.resolveNavigationForPrompt(source, profile);
+        const antiTemplateBlock = PromptComposer.antiTemplateUxBlock(source);
+        const effectiveNavPosition = PromptComposer.suggestNavigationPosition(source);
+        const aiBlock = source.useAI
+            ? (profile.key === 'simple'
+                ? PromptComposer.aiIntegrationBrief(source)
+                : aiIntegrationDirective.trim())
+            : '';
+
+        const apiDirective = source.apis?.length
+            ? `\n- **External APIs (ON)**: ${source.apis.join(', ')} — functional mock UI only.`
+            : '\n- **External APIs: OFF** — do not add API integrations or fetch panels.';
 
         const hardwareDescriptions = {
-            'Camera': 'wajib bangun WebRTC viewfinder premium dengan status izin permission UI',
-            'Microphone': 'wajib bangun indikator visual gelombang suara (audio waveform) taktil yang interaktif saat mendengarkan',
-            'Geolocation': 'wajib bangun simulasi peta taktil / koordinat presisi dengan indikator jangkauan akurasi',
-            'Gyroscope / Accelerometer': 'wajib bangun mekanik kemiringan / sensor arah fisik dengan animasi reaktif 3D/CSS',
-            'NFC / Bluetooth': 'wajib bangun status visual pemindaian / transmisi sinyal nirkabel pulsa nirkabel'
+            'Camera': 'WebRTC viewfinder + permission UI',
+            'Microphone': 'waveform indicator + permission UI',
+            'Geolocation': 'map/coordinates mock',
+            'Gyroscope / Accelerometer': 'tilt/motion reactive UI',
+            'NFC / Bluetooth': 'scan/connect status UI'
         };
-        const hardwareDirective = `\n- **Hardware Access (Guided Autonomy)**: ${source.hardware?.length ? source.hardware.map(hw => `${hw} (${hardwareDescriptions[hw] || 'wajib bangun antarmuka integrasi taktil premium dengan indikator status akses/izin UI'})`).join(', ') : 'None explicitly specified.'} (Anda memiliki otonomi terpandu untuk merancang panel simulasi akses sensor perangkat keras lain yang krusial untuk mendukung konsep hibrida ini).`;
+        const hardwareDirective = source.hardware?.length
+            ? `\n- **Hardware (ON)**: ${source.hardware.map(hw => `${hw} (${hardwareDescriptions[hw] || 'permission + status UI'})`).join(', ')}.`
+            : '\n- **Hardware: OFF** — do not request device permissions.';
 
         const isGame = ['Game 2D', 'Game 3D'].includes(source.category);
 
@@ -232,10 +257,16 @@ ${source.secondaryCategory && source.secondaryCategory !== 'None' ? `- **Seconda
 - **Concept:** "${source.product}"
 - **Core Mechanics:**
 ${mechanicsList}
-- **Aesthetic:** "${aesthetics}"
+- **App Routes (use these exact nav labels):** ${resolvedRoutes.map(r => `"${r}"`).join(', ')}
+- **Nav position:** ${effectiveNavPosition}
+- **Aesthetic/Design Style:** "${source.designStyle || 'minimalist'}" ${aesthetics ? `- ${aesthetics}` : ''}
+- **Typography:** Primary Font: "${source.primaryFont || 'Inter'}", Secondary Font: "${source.secondaryFont || 'Inter'}"
+- **Writing/Copywriting Style:** "${source.writingStyle || 'informatif'}"
 - **Target Audience:** ${(source.audiences || []).join(', ') || 'General Users'}
 ${colors ? `- **Color Palette (60-30-10):** Primary(${colors.color1}), Surface(${colors.color2}), Accent(${colors.color3})` : ''}
 </project-identity>
+
+${adaptiveProfileBlock}
 
 <technical-spec>
 - **Core Engine:** ${coreEngine}
@@ -244,7 +275,7 @@ ${colors ? `- **Color Palette (60-30-10):** Primary(${colors.color1}), Surface($
 - **Data Persistence:** Simpan state interaktif, preferensi, dan riwayat history secara real-time ke **LocalStorage**.
 - **A11y & Robustness:** Gunakan semantik HTML5, ARIA roles, rasio kontras warna fintech-safe, serta error handling estetik (graceful failure).
 - **No Emojis & Premium Icon Library:** DILARANG KERAS menggunakan emoji visual di seluruh antarmuka aplikasi hasil generate (baik pada tombol, tab, sidebar, modal, toast, navigasi, maupun status). Wajib gunakan pustaka ikon vektor profesional **FontAwesome (v6 via CDN)** atau **Lucide Icons** untuk semua representasi simbol visual.
-- **Single Page Application Layout (MANDATORY)**: Aplikasi WAJIB dipecah menjadi layout beberapa tab/halaman menggunakan navigasi menu untuk tampilan berikut secara eksklusif: ${source.navigation?.length ? source.navigation.join(', ') : 'Dashboard, Features, Settings'}. Hanya satu halaman yang aktif dalam satu waktu dengan transisi konten reaktif yang mulus (SPA routing/view toggle). Posisi komponen bar navigasi (Sidebar/Topbar/Bottombar) **WAJIB diletakkan di bagian: "${source.navigationPosition || 'left'}"** dari layar viewport (jika 'left': sidebar kiri; jika 'right': sidebar kanan; jika 'top': topbar atas; jika 'bottom': bottombar bawah yang mobile-friendly). Rancang kontainer layout flex/grid dengan padding/margin yang presisi agar konten tidak tertutup oleh bar navigasi tersebut.
+- ${navigationSpec.replace(/^- /, '')}
 - **Theme Mode & Token Optimization**: ${source.themeMode === 'dark' ? 'Eksklusif Dark Mode premium. DILARANG membuat tombol saklar tema/state. Jangan gunakan class "dark:" Tailwind. Tulis warna dasar gelap langsung (bg-zinc-950, text-zinc-100).' : source.themeMode === 'light' ? 'Eksklusif Light Mode premium. DILARANG membuat tombol saklar tema/state. Tulis warna dasar terang langsung.' : 'Dual Theme (Dark/Light mode) dengan tombol saklar interaktif (bulan/matahari) reaktif Vue dan simpan di LocalStorage.'}
 - **Branding & Logo**: ${source.createLogo ? 'WAJIB buat logo vektor kustom estetik menggunakan inline SVG langsung di header navigasi. Jangan pakai gambar luar.' : 'Gaya Ultra-Minimalist. DILARANG keras pakai logo SVG/gambar visual. Cukup tipografi teks nama aplikasi yang elegan.'}
 - **Audio & Sound Effects**: ${source.createAudio ? 'WAJIB sertakan efek suara SFX klik/sukses interaktif berbasis Web Audio API oscillators kustom. Sediakan tombol Mute/Unmute di header.' : 'SILENT APP (TANPA SUARA). DILARANG keras menulis kode Web Audio API atau memuat file audio.'}
@@ -275,29 +306,24 @@ ${isGame ? `#### 3. Game & Canvas Architecture
 - **Interactive Feedback:** Tampilkan floating Toast notification (timeout 3 detik) untuk memberi tahu hasil dari setiap aksi (sukses/gagal/info).
 - **Micro-interactions (Juice):** CSS transition/keyframes yang halus untuk hover/focus. Batasi GSAP hanya untuk transisi tingkat lanjut (modal/charts).
 - **Keyboard & Focus a11y:** Pastikan focus state \`:focus-visible\` kustom sangat jelas.`}
-${hasCamera ? `\n- **MULTIMODAL AI VISION SYNERGY (ACTIVE)**: Karena fitur "Kamera" dan "AI" aktif bersamaan, bangun fungsionalitas **AI Vision Nyata**! Ketika tombol potret kamera ditekan, ambil snapshot frame dari viewfinder menggunakan HTML5 Canvas, konversikan ke string Base64, dan kirimkan langsung ke API Gemini menggunakan format payload multimodal: \`{"contents": [{"parts": [{"text": PROMPT_ANALISIS}, {"inlineData": {"mimeType": "image/jpeg", "data": BASE64_STRING_GAMBAR}}]}]}\`. Tampilkan hasil analisis visual AI secara instan untuk memperbarui state/data aplikasi.` : ''}
-${hasMic ? `\n- **VOICE COMMAND & AUDIO ACTIONS SYNERGY (ACTIVE)**: Karena fitur "Microphone" dan "AI" aktif bersamaan, bangun **Fitur Dikte Suara Nyata**! Letakkan tombol mikrofon interaktif di samping input chat/form. Gunakan Web Speech API (\`SpeechRecognition\` atau \`webkitSpeechRecognition\`) ber-bahasa Indonesia (\`id-ID\`) untuk merekam suara dan mentranskripnya secara instan ke kolom input, lalu langsung kirimkan ke AI untuk diolah.` : ''}
-${aiIntegrationDirective}${apiDirective}${hardwareDirective}
+${source.useAI && profile.key !== 'simple' && hasCamera ? `\n- **MULTIMODAL AI VISION (ACTIVE)**: Camera + AI — snapshot canvas → Gemini multimodal inlineData; update app state from result.` : ''}
+${source.useAI && profile.key !== 'simple' && hasMic ? `\n- **VOICE INPUT (ACTIVE)**: Mic + AI — Web Speech API (id-ID) → fill input → send to AI agent.` : ''}
+${aiBlock ? `\n${aiBlock}` : ''}${apiDirective}${hardwareDirective}
 ${source.customDirectives ? `\n- **AI Custom Synthesis Directives (CRITICAL - HIGH PRIORITY)**: ${source.customDirectives}` : ''}
+${antiTemplateBlock}
 </directives>
 
 <domain-focus>
-#### Category Directives (${source.category}):
+#### Category Directives (${source.category}) — top ${profile.maxCategoryDirectives} only:
 ${formattedCategoryDirectives}
-${source.secondaryCategory && source.secondaryCategory !== 'None' && categoryConfigs[source.secondaryCategory] ? `\n#### Secondary Category Directives (${source.secondaryCategory}):\n${categoryConfigs[source.secondaryCategory].directives.map((d, i) => `${i + 1}. ${d}`).join('\n')}` : ''}
-
-#### Domain Psychology (${source.category}):
-${categoryFocusMap[source.category] || ''}
-${source.secondaryCategory && source.secondaryCategory !== 'None' ? `\n#### Domain Psychology (${source.secondaryCategory}):\n${categoryFocusMap[source.secondaryCategory] || ''}` : ''}
+${formattedSecondaryDirectives ? `\n#### Secondary (${source.secondaryCategory}) — top ${profile.maxSecondaryDirectives}:\n${formattedSecondaryDirectives}` : ''}
+${profile.includeDomainPsychology ? `\n#### Domain Psychology (${source.category}):\n${categoryFocusMap[source.category] || ''}${source.secondaryCategory && source.secondaryCategory !== 'None' && categoryFocusMap[source.secondaryCategory] ? `\n#### Domain Psychology (${source.secondaryCategory}):\n${categoryFocusMap[source.secondaryCategory]}` : ''}` : '\n(Skip long domain essays — follow generation-profile scope.)'}
 </domain-focus>
 
 ---
 
 ### RESPONSE FORMAT (MANDATORY)
-1. **Executive Rationale:** (Maks 1-2 paragraf) Sinergi antar mekanik (Synergy Hook).
-2. **Architecture & State Schema:** Skema JSON singkat dari state utama aplikasi.
-3. **The Prototype (Full Code):** Blok kode html utuh di dalam SATU tag \`\`\`html. (Harus memiliki 'WOW factor' saat pertama kali dijalankan).
-4. **Roadmap & Testing:** 3-4 poin rencana pengujian taktis berikutnya.`;
+${profile.responseSections.includes('rationale') ? '1. **Executive Rationale:** (Max 1 short paragraph) Synergy Hook only.\n' : ''}${profile.responseSections.includes('schema') ? '2. **Architecture & State Schema:** Compact JSON state outline.\n' : ''}${profile.responseSections.includes('code') ? '3. **The Prototype (Full Code):** ONE \\`\\`\\`html block — complete, runnable, no truncation comments.\n' : ''}${profile.responseSections.includes('testing') ? '4. **Roadmap & Testing:** 2-3 bullet test steps.\n' : ''}`;
     },
 
     generateMasterPrompt(source, libStacks, categoryFocusMap, colors) {
@@ -455,15 +481,30 @@ ${mechanicsList}
 ${stylesList}
 ${audiencesList}
 ${constraintsList}
+- **Design & UX Preferences**:
+  - **Design Style**: ${source.designStyle || 'minimalist'}
+  - **Typography**: Primary: ${source.primaryFont || 'Inter'}, Secondary: ${source.secondaryFont || 'Inter'}
+  - **Writing/Copywriting Style**: ${source.writingStyle || 'informatif'}
 - **API Integrations (Guided Autonomy)**:
 ${source.apis?.length ? source.apis.map(api => `  - ${api}`).join('\n') : '  - None specified. You are given guided autonomy to determine, design, and mock other APIs.'}
 - **Hardware Access (Guided Autonomy)**:
 ${source.hardware?.length ? source.hardware.map(hw => `  - ${hw}`).join('\n') : '  - None specified. You are given guided autonomy to simulate other hardware/device access.'}
-${source.useAI ? `- **REAL Live Client-Side AI Integration (CRITICAL - NO MOCK DATA)**: The generated application MUST be actively integrated with AI.
-- **Client-Input API Provider & Key in Settings**: Provide a dropdown in global Settings for "Gemini" or "Groq", and a text input for API Key. Save securely in LocalStorage.
-- **Exact Model Request Specs**:
-  1. For **Gemini**: Use model **gemini-3.1-flash-lite** or **gemini-3-flash-preview** via \`POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=KEY\`. Body: \`{"contents": [{"parts": [{"text": PROMPT}]}]}\`.
-  2. For **Groq**: Use model **llama-3.1-8b-instant** or **llama3-70b-8192** via \`POST https://api.groq.com/openai/v1/chat/completions\`. Headers: \`Authorization: Bearer KEY\`. Body: \`{"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": PROMPT}]}\`.` : ''}
+${source.useAI ? `- **REAL Live Client-Side AI Integration (CRITICAL - NO BOILERPLATE & NO DUMMY DATA)**: The generated application MUST use the DiverDea AI SDK to power its intelligent features. Do not write raw fetch calls to Gemini/Groq. You are STRICTLY FORBIDDEN from simulating data using \`setTimeout\` or hardcoding fake AI responses. The app must fetch real data using the SDK.
+- **SDK Inclusion**: Include the SDK via \`<script src="./sdk/diverdea-ai-sdk.js"></script>\` or use it as a global \`window.DiverDeaAI\` object.
+- **Client-Input API Provider & Key in Settings**: Provide a dropdown in global Settings for "Gemini" or "Groq", and a text input for API Key. Save securely in LocalStorage. Call \`DiverDeaAI.init({ provider, apiKey })\` on load.
+- **AI Modalities (MANDATORY)**: ${
+    (source.aiModalities && source.aiModalities.length > 0) 
+    ? `\n  - Implement the following modalities using the SDK:\n` + source.aiModalities.map(m => {
+        if (m.includes('Vision')) return '    * **Vision**: Use `await DiverDeaAI.Vision.analyze(canvasElement, "prompt")` for computer vision tasks.';
+        if (m.includes('Voice Input')) return '    * **Voice Input**: Use `await DiverDeaAI.Audio.listenAndTranscribe((text) => {})` for voice-to-text input.';
+        if (m.includes('Voice Output')) return '    * **Voice Output**: Use `DiverDeaAI.Audio.speak("text")` to synthesize speech output.';
+        if (m.includes('Extraction')) return '    * **Data Extraction**: Use `await DiverDeaAI.Data.extract(text, schema)` to parse unstructured text to JSON.';
+        if (m.includes('Sentiment')) return '    * **Sentiment Analysis**: Use `await DiverDeaAI.Data.analyzeSentiment(text)` to detect user emotions.';
+        if (m.includes('Document Analysis')) return '    * **Document Q&A**: Use `await DiverDeaAI.Data.documentQA(docText, question)` for RAG functionality.';
+        return '    * **Predictive Analytics**: Use `await DiverDeaAI.predict(jsonData)` for advanced data analysis.';
+      }).join('\n')
+    : `\n  - Use \`await DiverDeaAI.Chat.ask("prompt")\` for intelligent dynamic responses that mutate the UI state.`
+}` : ''}
 - **Brand Color Design Tokens:** 
   - Primary/Hero: \`${colors?.color1 || '#3B82F6'}\`
   - Surface/Neutral: \`${colors?.color2 || '#F3F4F6'}\`
@@ -550,15 +591,17 @@ ${source.customDirectives ? `\n- **AI Custom Synthesis Directives (HIGH PRIORITY
      * Output is used as context for the full build prompt (Step 2).
      */
     generatePlanningPrompt(source) {
+        const profile = PromptComposer.getProfile(source);
         const mechanicsFormatted = (source.mechanics || []).map((m, i) => `${i + 1}. "${m}"`).join('\n');
         const optionals = [
             source.styles?.length    ? `- Visual Styles: ${source.styles.join(', ')}` : null,
             source.audiences?.length ? `- Target Audiences: ${source.audiences.join(', ')}` : null,
             source.constraints?.length ? `- Design Constraints: ${source.constraints.join(', ')}` : null,
-            source.apis?.length      ? `- External APIs to Integrate: ${source.apis.join(', ')}` : null,
-            source.hardware?.length  ? `- Device Hardware Access: ${source.hardware.join(', ')}` : null,
-            source.useAI             ? `- Generated App Uses AI: YES (${source.aiApi === 'gemini' ? 'Gemini API' : 'Groq/Llama API'})` : null,
+            source.apis?.length      ? `- External APIs: ${source.apis.join(', ')}` : '- External APIs: OFF',
+            source.hardware?.length  ? `- Hardware: ${source.hardware.join(', ')}` : '- Hardware: OFF',
+            source.useAI             ? `- App AI: YES (${source.aiApi === 'gemini' ? 'Gemini' : 'Groq'})` : '- App AI: OFF',
         ].filter(Boolean).join('\n');
+        const profileExtras = PromptComposer.buildPlanningExtras(source, profile);
 
         return `### ARCHITECTURE PLANNING PHASE — Step 1 of 2
 
@@ -566,6 +609,9 @@ You are a Principal Software Architect. Your ONLY task right now is to create a 
 **DO NOT write any HTML, CSS, or JavaScript code.** Output ONLY structured JSON.
 
 ---
+
+### GENERATION PROFILE:
+${profileExtras}
 
 ### APP CONCEPT:
 - **App Name:** "${source.appName}"
@@ -575,7 +621,7 @@ ${source.secondaryCategory && source.secondaryCategory !== 'None' ? `- **Seconda
 - **Core Mechanics (to synthesize):**
 ${mechanicsFormatted}
 ${source.customDirectives ? `- **Custom Integration Directives:** ${source.customDirectives}` : ''}
-${optionals ? `\n### OPTIONAL VARIABLES:\n${optionals}` : ''}
+${optionals ? `\n### ACTIVE OPTIONS:\n${optionals}` : ''}
 
 ---
 
@@ -586,8 +632,8 @@ Return ONLY a valid JSON object — no markdown fences, no extra text:
 {
   "synergyAnalysis": "<2-3 sentences: how the mechanics connect to form a cohesive product>",
   "layoutStrategy": "<describe the main layout approach: e.g., sidebar+canvas, dashboard grid, single-column wizard>",
-  "navigation": ["<PILIH 3 SAMPAI 5 nama menu navigasi utama (sidebar/topbar) yang paling cocok, misal: ['Dashboard', 'AI Scanner', 'History', 'Settings'] sesuai konsep hibrida>"],
-  "navigationPosition": "<PILIH SALAH SATU POSISI: 'left' (sidebar kiri), 'right' (sidebar kanan), 'top' (topbar atas), 'bottom' (bottombar bawah) yang paling ergonomis dan cocok untuk kategori ini>",
+  "navigation": ["<SATU label per fitur di mechanics — panjang array = jumlah mechanics + 1 hub. DILARANG: Dashboard, Features, Settings. Contoh untuk fitur 'Pelacak Streak' & 'Leaderboard': ['Beranda', 'Streak Harian', 'Papan Peringkat']>"],
+  "navigationPosition": "<'bottom' untuk mobile/PWA, 'left' untuk desktop dashboard, 'top' untuk game HUD — sesuai platform>",
   "themeMode": "<PILIH SALAH SATU: 'dark' (hanya dark mode), 'light' (hanya light mode), atau 'both' (punya toggle dark/light mode) yang paling cocok dengan estetika kategori ini>",
   "createLogo": <true jika aplikasi ini membutuhkan branding visual/logo maskot kustom yang kuat, atau false jika ingin bersih minimalis tanpa logo sama sekali>,
   "createAudio": <true jika aplikasi ini membutuhkan efek suara (sound effects) atau sintesis audio Web Audio API (misal: game, alarm, meditasi, accessibility), atau false jika berupa dasbor/utilitas sunyi biasa>,

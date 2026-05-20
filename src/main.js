@@ -5,6 +5,7 @@ import { conceptsList3, targetAudiences, constraints, externalAPIs, deviceCapabi
 import { AudioEngine } from './core/audioEngine.js';
 import { ColorEngine } from './core/colorEngine.js';
 import { SynthesisEngine } from './core/synthesisEngine.js';
+import { PromptComposer } from './core/promptComposer.js';
 import { AIEngine, AIStorage, AI_PROVIDERS, DOMAIN_SYSTEM_PROMPTS } from './core/aiEngine.js';
 
 // --- TAILWIND CONFIGURATION ---
@@ -91,6 +92,7 @@ createApp({
             // Generated Project AI Settings
             projectUseAI: AIStorage.load('projectUseAI') === 'true',
             projectAiApi: AIStorage.load('projectAiApi') || 'gemini',
+            projectAiModalities: JSON.parse(AIStorage.load('projectAiModalities') || '[]'),
             
             // AI Planner State
             aiProblemInput: '',
@@ -101,6 +103,24 @@ createApp({
             aiPreviewConcept: null,
             aiHistory: [],
             aiSelectedMethod: 'problem',
+
+            // High-impact output controls (AI feedback loop)
+            appComplexity: 'medium',   // 'simple' | 'medium' | 'advanced'
+            appPlatform: 'mobile',     // 'mobile' | 'desktop' | 'pwa'
+            appLanguage: 'id',         // 'id' | 'en' | 'bilingual'
+            appBusinessModel: 'free',  // 'free' | 'freemium' | 'subscription' | 'onetime'
+            appDesignStyle: 'minimalist',
+            appPrimaryFont: 'Inter',
+            appSecondaryFont: 'Inter',
+            appWritingStyle: 'informatif',
+
+            synthesisModes: [
+                { id: 'general', label: 'Quick Mix', title: 'Acak cepat tanpa aturan khusus' },
+                { id: 'standard', label: 'Balanced', title: 'Kombinasi seimbang dari domain yang dipilih' },
+                { id: 'lateral', label: 'Wild Ideas', title: 'Ide silang domain yang lebih berani' },
+                { id: 'manual', label: 'Manual', title: 'Anda mengisi setiap slot sendiri' },
+                { id: 'ai', label: 'AI Planner', title: 'AI merancang 3 konsep dari masalah/ide Anda' }
+            ],
             aiTweakInput: '',
             aiTweaking: false,
             isRecordingProblem: false,
@@ -202,6 +222,57 @@ createApp({
                 return "Ketik konsep dasar aplikasi/game Anda di sini (contoh: 'Aplikasi pencatatan keuangan sederhana', 'Game 2D platformer melompati rintangan')...";
             }
             return "Ketik di sini...";
+        },
+
+        // === REAL-TIME CONFIG SUMMARY ===
+        // Generates a plain-language sentence reflecting the current AI settings.
+        // This is the "feedback loop" that tells users what their toggles actually do.
+        aiConfigSummary() {
+            const platformLabels = { mobile: 'Mobile-First', desktop: 'Desktop', pwa: 'PWA' };
+            const complexityLabels = { simple: '1-2 fitur fokus', medium: '3-4 fitur', advanced: '4-5 fitur kaya' };
+            const langLabels = { id: 'Bahasa Indonesia', en: 'Bahasa Inggris', bilingual: 'bilingual ID & EN' };
+            const businessLabels = { free: 'gratis', freemium: 'freemium', subscription: 'berlangganan', onetime: 'beli sekali' };
+            const themeLabels = { dark: 'tema gelap saja', light: 'tema terang saja', both: 'tema gelap & terang' };
+            const outputLabels = { standard: 'satu file HTML', master: 'proyek multi-file' };
+            const designLabels = { 'very-minimalist': 'sangat minimalis', minimalist: 'minimalis', modern: 'modern', playful: 'playful', corporate: 'korporat', brutalist: 'brutalis', glassmorphism: 'glassmorphism' };
+            const writingLabels = { 'sangat-singkat': 'sangat singkat', singkat: 'singkat', informatif: 'informatif', deskriptif: 'deskriptif', persuasif: 'persuasif', humoris: 'humoris', formal: 'formal' };
+
+            const domain = this.isCustomPrimary && this.customPrimaryCategory
+                ? this.customPrimaryCategory
+                : this.selectedCategory;
+
+            const secondary = (this.isCustomSecondary && this.customSecondaryCategory)
+                ? ` + ${this.customSecondaryCategory}`
+                : (this.secondaryCategory && this.secondaryCategory !== 'None' ? ` + ${this.secondaryCategory}` : '');
+
+            const traits = [];
+            traits.push(`<strong>${platformLabels[this.appPlatform]}</strong>`);
+            traits.push(`model <strong>${businessLabels[this.appBusinessModel]}</strong>`);
+            traits.push(`<strong>${this.mechanicCount} fitur</strong>`);
+            traits.push(`kompleksitas <strong>${complexityLabels[this.appComplexity]}</strong>`);
+            traits.push(`<strong>${themeLabels[this.projectThemeMode]}</strong>`);
+            traits.push(`output <strong>${outputLabels[this.promptMode]}</strong>`);
+            traits.push(`bahasa <strong>${langLabels[this.appLanguage]}</strong>`);
+            traits.push(`gaya desain <strong>${designLabels[this.appDesignStyle] || this.appDesignStyle}</strong>`);
+            traits.push(`font <strong>${this.appPrimaryFont}/${this.appSecondaryFont}</strong>`);
+            traits.push(`copywriting <strong>${writingLabels[this.appWritingStyle] || this.appWritingStyle}</strong>`);
+
+            const extras = [];
+            if (this.useNavigation) extras.push(`${this.navigationCount} halaman`);
+            if (this.useAudience) extras.push('audiens khusus');
+            if (this.useConstraint) extras.push('batasan desain');
+            if (this.useThirdConcept) extras.push('gaya visual');
+            if (this.useAPI && this.selectedAPIs.length) extras.push(this.selectedAPIs.slice(0, 2).join(', '));
+            if (this.useHardware && this.selectedHardware.length) extras.push(this.selectedHardware[0]);
+            if (this.useCharts) extras.push('grafik data');
+            if (this.projectUseAI) extras.push(`AI bawaan (${this.projectAiApi})`);
+            if (this.createAudio) extras.push('efek suara');
+            if (this.minimalMockData) extras.push('data contoh cepat');
+
+            let summary = `AI akan merancang aplikasi <strong>${domain}${secondary}</strong> — ${traits.join(', ')}`;
+            if (extras.length) summary += `, plus <strong>${extras.join(', ')}</strong>`;
+            summary += '.';
+            return summary;
         }
     },
     methods: {
@@ -301,7 +372,7 @@ createApp({
                 if (this.useThirdConcept) SynthesisEngine.randomizeGroup(this.styleSlots, this.styleCount, this.pools.style);
                 if (this.useAudience) SynthesisEngine.randomizeGroup(this.audienceSlots, this.audienceCount, this.pools.audience);
                 if (this.useConstraint) SynthesisEngine.randomizeGroup(this.constraintSlots, this.constraintCount, this.pools.constraint);
-                if (this.useNavigation) SynthesisEngine.randomizeGroup(this.navigationSlots, this.navigationCount, this.pools.navigation);
+                if (this.useNavigation) this.syncNavigationToMechanics(true);
 
                 this.generatedIdea = true;
             });
@@ -461,6 +532,7 @@ Return ONLY this JSON schema:
             AIStorage.save(this.aiProvider === 'groq' ? 'groqModel' : 'geminiModel', this.aiModel);
             AIStorage.save('projectUseAI', this.projectUseAI);
             AIStorage.save('projectAiApi', this.projectAiApi);
+            AIStorage.save('projectAiModalities', JSON.stringify(this.projectAiModalities));
             this.playPop();
         },
         toggleSpeechRecognition(targetField) {
@@ -560,13 +632,60 @@ Return ONLY this JSON schema:
 
             const isSingleDomain = !this.isCustomSecondary && this.secondaryCategory === 'None';
 
+            // Build new parameter context strings
+            const complexityInstructions = {
+                simple:   'KOMPLEKSITAS: SEDERHANA. Batasi setiap konsep menjadi maksimal 2 fitur utama yang sangat fokus dan mudah dibangun dalam < 1 minggu.',
+                medium:   'KOMPLEKSITAS: SEDANG. Setiap konsep boleh memiliki 3-4 fitur yang saling terhubung dengan alur yang jelas.',
+                advanced: 'KOMPLEKSITAS: TINGGI. Setiap konsep harus memiliki 4-5 fitur berlapis, saling berinteraksi, dan mencerminkan arsitektur produk yang matang.'
+            };
+            const platformInstructions = {
+                mobile:  'PLATFORM TARGET: MOBILE-FIRST. Semua fitur dan UX flow harus dioptimalkan untuk layar sentuh smartphone. Prioritaskan gesture, notifikasi push, dan antarmuka yang minimalis.',
+                desktop: 'PLATFORM TARGET: DESKTOP WEB. Fitur boleh lebih kaya data, mendukung multi-panel layout, shortcut keyboard, dan dashboard yang detail.',
+                pwa:     'PLATFORM TARGET: PWA (Progressive Web App). Konsep harus mendukung offline-first, installable ke home screen, dan sinkronisasi data latar belakang.'
+            };
+            const langInstructions = {
+                id:       'BAHASA OUTPUT: Gunakan BAHASA INDONESIA yang sederhana dan kasual di semua field teks (product, description, mechanics).',
+                en:       'LANGUAGE OUTPUT: Use clear, simple ENGLISH for all text fields (product, description, mechanics).',
+                bilingual: 'LANGUAGE OUTPUT: Use BILINGUAL format — write the appName in English, but all descriptive fields (product, description, mechanics) in Bahasa Indonesia.'
+            };
+            const businessInstructions = {
+                free:         'MODEL BISNIS: GRATIS. Tidak ada paywall; fokus pada adopsi dan retensi pengguna.',
+                freemium:     'MODEL BISNIS: FREEMIUM. Rancang fitur inti gratis + 1-2 fitur premium yang jelas nilainya (badge Pro, upgrade CTA).',
+                subscription: 'MODEL BISNIS: BERLANGGANAN. Sarankan tier bulanan/tahunan, trial, dan manfaat berkelanjutan yang membenarkan langganan.',
+                onetime:      'MODEL BISNIS: BELI SEKALI. Fokus pada nilai sekali bayar, lisensi, atau unlock permanen — bukan langganan.'
+            };
+            const designStyleInstructions = {
+                'very-minimalist': 'GAYA DESAIN: SANGAT MINIMALIS. Fokus pada fungsi absolut dengan ruang kosong ekstrim.',
+                'minimalist': 'GAYA DESAIN: MINIMALIS. Bersih, rapi, dengan elemen esensial.',
+                'modern': 'GAYA DESAIN: MODERN. Estetika kekinian dengan lekukan halus dan visual dinamis.',
+                'playful': 'GAYA DESAIN: PLAYFUL. Menyenangkan, penuh warna ceria, dan bentuk membulat.',
+                'corporate': 'GAYA DESAIN: CORPORATE. Profesional, terstruktur, aman, dan elegan.',
+                'brutalist': 'GAYA DESAIN: BRUTALIST. Kasar, berani, tipografi raksasa, dan kontras tinggi.',
+                'glassmorphism': 'GAYA DESAIN: GLASSMORPHISM. Efek kaca buram transparan dan berlapis.'
+            };
+            const writingStyleInstructions = {
+                'sangat-singkat': 'GAYA PENULISAN: SANGAT SINGKAT. Langsung ke intinya (to the point), maksimal 3-5 kata per kalimat.',
+                'singkat': 'GAYA PENULISAN: SINGKAT. Padat dan jelas tanpa basa-basi.',
+                'informatif': 'GAYA PENULISAN: INFORMATIF. Fokus pada fakta, panduan, dan kejelasan data.',
+                'deskriptif': 'GAYA PENULISAN: DESKRIPTIF. Menggambarkan fitur dan manfaat secara rinci dan imajinatif.',
+                'persuasif': 'GAYA PENULISAN: PERSUASIF. Mengajak, memotivasi, dan meyakinkan pengguna (copywriting sales).',
+                'humoris': 'GAYA PENULISAN: HUMORIS. Santai, lucu, dan menyelipkan lelucon ringan.',
+                'formal': 'GAYA PENULISAN: FORMAL. Sopan, baku, dan sangat profesional.'
+            };
+
             const systemPrompt = `You are DiverDea's AI Concept Planner. ${taskPrompt}
 PENTING:
-1. Gunakan BAHASA INDONESIA YANG SEDERHANA, kasual, dan sangat mudah dipahami.
+1. ${langInstructions[this.appLanguage]}
 2. 'appName' WAJIB menggunakan nama ala startup modern (singkat 1-2 kata, unik, catchy, mudah diingat. Contoh: Halodoc, Gojek, Ruangguru, Zenius, KitaBisa).
 3. DILARANG KERAS menyertakan emoji visual apa pun dalam seluruh respons JSON Anda.
-${isSingleDomain ? `4. USER MEMILIH MODE DOMAIN TUNGGAL: Anda DILARANG keras menyertakan kategori pendukung apa pun. Nilai kolom "secondaryCategory" WAJIB berupa teks "None" secara mutlak.\n` : `4. DIVERSIFIKASI DOMAIN PENDUKUNG (secondaryCategory): Jangan terlalu sering/selalu menggunakan 'Game 2D' atau 'Game 3D' sebagai kategori pendukung. Cobalah melakukan perkawinan silang lateral dengan kategori non-game lainnya secara berani (misal: Fintech + Health, Productivity + Green-Tech, Education + Social) untuk menciptakan inovasi non-game yang luar biasa. Pilih 'None' jika tidak ada kategori pendukung yang benar-benar relevan.\n`}
-${!this.useAPI ? `5. USER MEMATIKAN API INTEGRATION: Anda DILARANG keras menyertakan rekomendasi API eksternal apa pun dalam respons JSON. Nilai kolom "apis" WAJIB berupa array kosong [].\n` : ''}${!this.useHardware ? `6. USER MEMATIKAN HARDWARE ACCESS: Anda DILARANG keras menyertakan rekomendasi hardware/capability akses perangkat apa pun dalam respons JSON. Nilai kolom "hardware" WAJIB berupa array kosong [].\n` : ''}
+4. ${complexityInstructions[this.appComplexity]}
+5. ${platformInstructions[this.appPlatform]}
+6. ${businessInstructions[this.appBusinessModel]}
+7. ${designStyleInstructions[this.appDesignStyle]}
+8. ${writingStyleInstructions[this.appWritingStyle]}
+9. TIPOGRAFI: Utama (${this.appPrimaryFont}), Sekunder (${this.appSecondaryFont}).
+${isSingleDomain ? `10. USER MEMILIH MODE DOMAIN TUNGGAL: Anda DILARANG keras menyertakan kategori pendukung apa pun. Nilai kolom "secondaryCategory" WAJIB berupa teks "None" secara mutlak.\n` : `10. DIVERSIFIKASI DOMAIN PENDUKUNG (secondaryCategory): Jangan terlalu sering/selalu menggunakan 'Game 2D' atau 'Game 3D' sebagai kategori pendukung. Cobalah melakukan perkawinan silang lateral dengan kategori non-game lainnya secara berani (misal: Fintech + Health, Productivity + Green-Tech, Education + Social) untuk menciptakan inovasi non-game yang luar biasa. Pilih 'None' jika tidak ada kategori pendukung yang benar-benar relevan.\n`}
+${!this.useAPI ? `11. USER MEMATIKAN API INTEGRATION: Anda DILARANG keras menyertakan rekomendasi API eksternal apa pun dalam respons JSON. Nilai kolom "apis" WAJIB berupa array kosong [].\n` : ''}${!this.useHardware ? `12. USER MEMATIKAN HARDWARE ACCESS: Anda DILARANG keras menyertakan rekomendasi hardware/capability akses perangkat apa pun dalam respons JSON. Nilai kolom "hardware" WAJIB berupa array kosong [].\n` : ''}
 You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code blocks.
 JSON Schema:
 {
@@ -588,6 +707,8 @@ JSON Schema:
       "styles": ["Gaya Visual 1", "Gaya Visual 2"],
       "audiences": ["Target Audiens"],
       "constraints": ["Batasan Teknis atau UX"],
+      "navigation": ["<Label menu UNIK per fitur — jumlah item = mechanics + 1. DILARANG Dashboard/Features/Settings>"],
+      "navigationPosition": "<bottom|top|left|right — mobile: bottom, desktop: left>",
       "apis": ${this.useAPI ? `["PILIH MAKSIMAL 3 DARI: ${this.externalAPIs.join(', ')}"]` : `[]`},
       "hardware": ${this.useHardware ? `["PILIH MAKSIMAL 3 DARI: ${this.deviceCapabilities.join(', ')}"]` : `[]`},
       "colors": { "hero": "#HEX1", "neutral": "#HEX2", "accent": "#HEX3" }
@@ -705,6 +826,9 @@ Note: You must return exactly 3 concepts in the array.`;
             // Mechanics
             data.mechanics = data.mechanics || [];
             this.mechanicCount = Math.min(Math.max(data.mechanics.length, 1), 5);
+            if (this.mechanicCount <= 2) this.appComplexity = 'simple';
+            else if (this.mechanicCount <= 4) this.appComplexity = 'medium';
+            else this.appComplexity = 'advanced';
             for(let i=0; i<this.mechanicCount; i++) {
                 const m = data.mechanics[i];
                 this.mechanicSlots[i].value = (m && typeof m === 'object') ? m.name : (m || 'Extra Feature');
@@ -741,24 +865,20 @@ Note: You must return exactly 3 concepts in the array.`;
                 }
             }
 
-            // Navigation Views
-            if (data.navigation && data.navigation.length > 0) {
-                this.useNavigation = true;
+            // App pages — from AI concept or derived from mechanics (never generic trio)
+            this.useNavigation = true;
+            if (data.navigation?.length && data.navigation.some(n => !PromptComposer.isGenericNav(n))) {
                 this.navigationCount = Math.min(data.navigation.length, 5);
-                for(let i=0; i<this.navigationCount; i++) {
+                for (let i = 0; i < this.navigationCount; i++) {
                     this.navigationSlots[i].value = data.navigation[i];
                     this.navigationSlots[i].locked = true;
                 }
-                this.navigationPosition = data.navigationPosition || 'left';
+                this.navigationPosition = data.navigationPosition || PromptComposer.suggestNavigationPosition(this.buildSynthesisSource());
             } else {
-                this.useNavigation = true;
-                this.navigationCount = 3;
-                this.navigationPosition = 'left';
-                const defaults = ['Dashboard', 'Features', 'Settings'];
-                for(let i=0; i<3; i++) {
-                    this.navigationSlots[i].value = defaults[i];
-                    this.navigationSlots[i].locked = true;
+                for (let i = 0; i < this.navigationSlots.length; i++) {
+                    this.navigationSlots[i].locked = false;
                 }
+                this.syncNavigationToMechanics(true);
             }
 
             // APIs
@@ -954,29 +1074,7 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
                 return;
             }
 
-            const source = {
-                appName:     this.appName,
-                category:    this.selectedCategory,
-                secondaryCategory: this.secondaryCategory,
-                customDirectives: this.customDirectives,
-                product:     this.productSlot.value,
-                mechanics:   this.mechanicSlots.slice(0, this.mechanicCount).map(s => s.value),
-                styles:      this.useThirdConcept ? this.styleSlots.slice(0, this.styleCount).map(s => s.value) : [],
-                audiences:   this.useAudience ? this.audienceSlots.slice(0, this.audienceCount).map(s => s.value) : [],
-                constraints: this.useConstraint ? this.constraintSlots.slice(0, this.constraintCount).map(s => s.value) : [],
-                navigation: this.useNavigation ? this.navigationSlots.slice(0, this.navigationCount).map(s => s.value) : [],
-                navigationPosition: this.useNavigation ? this.navigationPosition : 'left',
-                apis:        this.useAPI ? [...this.selectedAPIs, ...(this.customAPI ? [`Custom API: ${this.customAPI}`] : [])] : [],
-                hardware:    this.useHardware ? [...this.selectedHardware, ...(this.customHardware ? [this.customHardware] : [])] : [],
-                useAI:       this.projectUseAI,
-                aiApi:       this.projectAiApi,
-                themeMode:   this.projectThemeMode,
-                createLogo:   this.createLogo,
-                createAudio:  this.createAudio,
-                useAnimations: this.useAnimations,
-                useCharts:    this.useCharts,
-                minimalMockData: this.minimalMockData
-            };
+            const source = this.buildSynthesisSource();
 
             const architectSystemPrompt = `You are a Principal Software Architect. You produce precise, structured JSON blueprints for web applications. You NEVER write code in this phase. Respond ONLY with valid JSON — no markdown fences, no extra commentary.`;
 
@@ -1084,10 +1182,38 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
             return html;
         },
 
-        // --- PROMPT GENERATION ---
-        generateAiPrompt(idea = null) {
-            this.playPop();
-            const source = idea || {
+        /** Derive nav labels from mechanics; count tracks mechanicCount (+ hub) */
+        syncNavigationToMechanics(resetCount = true) {
+            if (!this.useNavigation) return;
+
+            if (resetCount) {
+                let count = Math.min(Math.max(this.mechanicCount + 1, 2), 5);
+                if (this.appComplexity === 'simple') count = Math.min(count, 3);
+                this.navigationCount = count;
+            }
+
+            const suggestedPos = PromptComposer.suggestNavigationPosition(this.buildSynthesisSource());
+            if (this.appPlatform === 'mobile' || this.appPlatform === 'pwa') {
+                this.navigationPosition = suggestedPos;
+            }
+
+            const source = this.buildSynthesisSource();
+            const profile = PromptComposer.getProfile(source);
+            const labels = PromptComposer.deriveNavigationLabels(
+                { ...source, navigationCount: this.navigationCount },
+                profile
+            );
+
+            for (let i = 0; i < this.navigationCount; i++) {
+                if (!this.navigationSlots[i].locked) {
+                    this.navigationSlots[i].value = labels[i] || labels[labels.length - 1] || `Halaman ${i + 1}`;
+                }
+            }
+        },
+
+        /** Unified synthesis payload — sidebar toggles → prompt composer */
+        buildSynthesisSource(idea = null) {
+            const base = {
                 appName: this.appName,
                 category: this.selectedCategory,
                 secondaryCategory: this.secondaryCategory,
@@ -1098,23 +1224,52 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
                 audiences: this.useAudience ? this.audienceSlots.slice(0, this.audienceCount).map(s => s.value) : [],
                 constraints: this.useConstraint ? this.constraintSlots.slice(0, this.constraintCount).map(s => s.value) : [],
                 navigation: this.useNavigation ? this.navigationSlots.slice(0, this.navigationCount).map(s => s.value) : [],
+                navigationCount: this.navigationCount,
                 navigationPosition: this.useNavigation ? this.navigationPosition : 'left',
+                useNavigation: this.useNavigation,
                 apis: this.useAPI ? [...this.selectedAPIs, ...(this.customAPI ? [`Custom API: ${this.customAPI}`] : [])] : [],
                 hardware: this.useHardware ? [...this.selectedHardware, ...(this.customHardware ? [this.customHardware] : [])] : [],
                 useAI: this.projectUseAI,
                 aiApi: this.projectAiApi,
+                aiModalities: this.projectAiModalities,
                 themeMode: this.projectThemeMode,
                 createLogo: this.createLogo,
                 createAudio: this.createAudio,
                 useAnimations: this.useAnimations,
                 useCharts: this.useCharts,
-                minimalMockData: this.minimalMockData
+                minimalMockData: this.minimalMockData,
+                complexity: this.appComplexity,
+                platform: this.appPlatform,
+                language: this.appLanguage,
+                businessModel: this.appBusinessModel,
+                designStyle: this.appDesignStyle,
+                primaryFont: this.appPrimaryFont,
+                secondaryFont: this.appSecondaryFont,
+                writingStyle: this.appWritingStyle
             };
+            if (!idea) return base;
+            return {
+                ...base,
+                ...idea,
+                useAI: idea.useAI !== undefined ? idea.useAI : base.useAI,
+                aiApi: idea.aiApi || base.aiApi,
+                complexity: idea.complexity || base.complexity,
+                platform: idea.platform || base.platform,
+                language: idea.language || base.language,
+                businessModel: idea.businessModel || base.businessModel,
+                designStyle: idea.designStyle || base.designStyle,
+                primaryFont: idea.primaryFont || base.primaryFont,
+                secondaryFont: idea.secondaryFont || base.secondaryFont,
+                writingStyle: idea.writingStyle || base.writingStyle,
+                useNavigation: idea.useNavigation !== undefined ? idea.useNavigation : base.useNavigation
+            };
+        },
 
-            if (idea) {
-                source.useAI = idea.useAI !== undefined ? idea.useAI : this.projectUseAI;
-                source.aiApi = idea.aiApi || this.projectAiApi;
-            }
+        // --- PROMPT GENERATION ---
+        generateAiPrompt(idea = null) {
+            this.playPop();
+            if (this.useNavigation) this.syncNavigationToMechanics(true);
+            const source = this.buildSynthesisSource(idea);
 
             if (this.promptMode === 'master') {
                 this.generatedPrompt = SynthesisEngine.generateMasterPrompt(
@@ -1134,28 +1289,7 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
         // --- STORAGE & CRUD ---
         saveCurrentIdea() {
             this.playPop();
-            const idea = {
-                id: Date.now(), appName: this.appName, category: this.selectedCategory,
-                secondaryCategory: this.secondaryCategory,
-                customDirectives: this.customDirectives,
-                product: this.productSlot.value,
-                mechanics: this.mechanicSlots.slice(0, this.mechanicCount).map(s => s.value),
-                styles: this.useThirdConcept ? this.styleSlots.slice(0, this.styleCount).map(s => s.value) : [],
-                audiences: this.useAudience ? this.audienceSlots.slice(0, this.audienceCount).map(s => s.value) : [],
-                constraints: this.useConstraint ? this.constraintSlots.slice(0, this.constraintCount).map(s => s.value) : [],
-                navigation: this.useNavigation ? this.navigationSlots.slice(0, this.navigationCount).map(s => s.value) : [],
-                navigationPosition: this.useNavigation ? this.navigationPosition : 'left',
-                apis: this.useAPI ? [...this.selectedAPIs, ...(this.customAPI ? [`Custom API: ${this.customAPI}`] : [])] : [],
-                hardware: this.useHardware ? [...this.selectedHardware, ...(this.customHardware ? [this.customHardware] : [])] : [],
-                useAI: this.projectUseAI,
-                aiApi: this.projectAiApi,
-                themeMode: this.projectThemeMode,
-                createLogo: this.createLogo,
-                createAudio: this.createAudio,
-                useAnimations: this.useAnimations,
-                useCharts: this.useCharts,
-                minimalMockData: this.minimalMockData
-            };
+            const idea = { id: Date.now(), ...this.buildSynthesisSource() };
             this.savedIdeas.unshift(idea);
             localStorage.setItem('diverdeaIdeas', JSON.stringify(this.savedIdeas));
         },
@@ -1218,7 +1352,13 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
                 this.saveSettings();
             }
         },
-        setCount(key, val) { this[key] = val; this.playPop(); },
+        setCount(key, val) {
+            this[key] = val;
+            if ((key === 'mechanicCount' || key === 'navigationCount') && this.useNavigation) {
+                this.syncNavigationToMechanics(key === 'mechanicCount');
+            }
+            this.playPop();
+        },
         getData(list) { 
             if (this.isFlatList(list)) return this[list];
             return this[list][this.modalCategory] || [];
@@ -1244,6 +1384,7 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
     watch: {
         synthesisMode(newVal) {
             if (newVal === 'lateral') this.lateralCategory = _.sample(this.categories.filter(c => c !== this.selectedCategory));
+            if (newVal === 'ai') this.sidebarOpenSections.engine = true;
             this.generateLateralIdea(true);
             this.trace(`Mode changed to: ${newVal}`);
         },
@@ -1253,6 +1394,12 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
         },
         aiPreviewConcept() {
             this.validationResult = null;
+        },
+        appPlatform() {
+            if (this.useNavigation) this.syncNavigationToMechanics(false);
+        },
+        appComplexity() {
+            if (this.useNavigation) this.syncNavigationToMechanics(true);
         }
     },
     mounted() {
@@ -1271,6 +1418,7 @@ You MUST respond ONLY with a valid JSON object. Do NOT wrap it in markdown code 
         this.appName = _.sample(['Neo','Zen','Omni','Flux','Aura']) + _.sample(['Flow','Grid','Mind','Sync','Hub']);
         this.randomizeColors();
         this.checkDataHealth();
+        if (this.useNavigation) this.syncNavigationToMechanics(true);
         
         // Init AI settings
         const savedModelKey = this.aiProvider === 'groq' ? 'groqModel' : 'geminiModel';
