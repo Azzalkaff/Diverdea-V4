@@ -184,9 +184,9 @@ export const SynthesisEngine = {
 
         const aiIntegrationDirective = source.useAI 
             ? `\n- **DIVERDEA AI SDK (CRITICAL - NO BOILERPLATE)**: Aplikasi prototype ini WAJIB menggunakan SDK multimodal buatan DiverDea. DILARANG KERAS menulis kode \`fetch\` panjang untuk memanggil API Gemini atau Groq secara manual.
-- **REAL LIVE AI (STRICTLY NO DUMMY DATA)**: Anda DILARANG KERAS menyimulasikan data dummy (mock) atau respons palsu menggunakan \`setTimeout\`. Aplikasi ini harus benar-benar terintegrasi secara LIVE dengan AI sebagai motor penggerak utama fitur fungsionalnya.
+- **REAL LIVE AI (STRICTLY NO DUMMY DATA)**: Anda DILARANG KERAS menyimulasikan data dummy (mock) atau respons palsu menggunakan \`setTimeout\` atau membuat blok \`else\` fallback (misal \`if (typeof DiverDeaAI !== 'undefined')\`). Asumsikan SDK selalu ada. Aplikasi ini harus benar-benar terintegrasi secara LIVE dengan AI!
 - **Wajib Include SDK**: Tambahkan \`<script src="./sdk/diverdea-ai-sdk.js"></script>\` di bagian \`<head>\`.
-- **Inisialisasi**: Di dalam \`setup()\` Vue Anda, minta API Key lewat input dari user lalu inisialisasikan \`DiverDeaAI.init({ provider: '${source.aiApi}', apiKey: 'KEY_DARI_USER' })\`.
+- **Inisialisasi**: Di dalam \`setup()\` Vue Anda, minta API Key lewat input dari user lalu panggil \`DiverDeaAI.init({ provider: '${source.aiApi}', apiKey: 'KEY_DARI_USER' })\`.
 - **Multimodal AI Modalities**: ${
     (source.aiModalities && source.aiModalities.length > 0) 
     ? `\n  - Aplikasi ini wajib memprioritaskan fungsi multimodal SDK berikut:\n` + source.aiModalities.map(m => {
@@ -200,7 +200,7 @@ export const SynthesisEngine = {
       }).join('\n')
     : `\n  - Gunakan \`await DiverDeaAI.Chat.ask("prompt")\` untuk mendapatkan respons AI yang cerdas.`
 }
-- **UI State Mutation**: Respons AI (yang sudah otomatis diparsing oleh SDK jika outputnya JSON) harus secara cerdas memicu mutasi fungsi JavaScript internal secara real-time.`
+- **CRITICAL SDK USAGE**: Semua fungsi \`await DiverDeaAI...\` (kecuali speak) SUDAH MENGEMBALIKAN OBJECT JAVASCRIPT hasil parsing JSON murni. **DILARANG KERAS** menggunakan \`JSON.parse()\` pada hasil return-nya (contoh benar: \`const res = await DiverDeaAI.Vision.analyze(); console.log(res.gesture);\`). Menggunakan \`JSON.parse()\` akan menyebabkan SyntaxError!`
             : '';
 
         const profile = PromptComposer.getProfile(source);
@@ -489,9 +489,10 @@ ${constraintsList}
 ${source.apis?.length ? source.apis.map(api => `  - ${api}`).join('\n') : '  - None specified. You are given guided autonomy to determine, design, and mock other APIs.'}
 - **Hardware Access (Guided Autonomy)**:
 ${source.hardware?.length ? source.hardware.map(hw => `  - ${hw}`).join('\n') : '  - None specified. You are given guided autonomy to simulate other hardware/device access.'}
-${source.useAI ? `- **REAL Live Client-Side AI Integration (CRITICAL - NO BOILERPLATE & NO DUMMY DATA)**: The generated application MUST use the DiverDea AI SDK to power its intelligent features. Do not write raw fetch calls to Gemini/Groq. You are STRICTLY FORBIDDEN from simulating data using \`setTimeout\` or hardcoding fake AI responses. The app must fetch real data using the SDK.
+${source.useAI ? `- **REAL Live Client-Side AI Integration (CRITICAL - NO BOILERPLATE & NO DUMMY DATA)**: The generated application MUST use the DiverDea AI SDK to power its intelligent features. Do not write raw fetch calls to Gemini/Groq. You are STRICTLY FORBIDDEN from simulating data using \`setTimeout\` or writing fallback \`if(typeof DiverDeaAI !== 'undefined')\` checks. Assume the SDK is always present.
 - **SDK Inclusion**: Include the SDK via \`<script src="./sdk/diverdea-ai-sdk.js"></script>\` or use it as a global \`window.DiverDeaAI\` object.
 - **Client-Input API Provider & Key in Settings**: Provide a dropdown in global Settings for "Gemini" or "Groq", and a text input for API Key. Save securely in LocalStorage. Call \`DiverDeaAI.init({ provider, apiKey })\` on load.
+- **CRITICAL SDK USAGE**: The SDK methods (e.g. \`await DiverDeaAI.Vision.analyze()\`) ALREADY RETURN A PARSED JAVASCRIPT OBJECT. **DO NOT** use \`JSON.parse()\` on the returned value, or the app will crash with a SyntaxError.
 - **AI Modalities (MANDATORY)**: ${
     (source.aiModalities && source.aiModalities.length > 0) 
     ? `\n  - Implement the following modalities using the SDK:\n` + source.aiModalities.map(m => {
